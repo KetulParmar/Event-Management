@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Registration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 350px;
+        }
+        h2 {
+            text-align: center;
+        }
+        label {
+            font-weight: bold;
+        }
+        input, select {
+            width: 90%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .hidden {
+            display: none;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            background: #28a745;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Register</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" placeholder="e.g. xyz_07" required>
+        {{err}}
+        <label for="full_name">Full Name</label>
+        <input type="text" id="full_name" name="full_name" required>
+
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required>
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
+        {{err1}}
+        <label for="password">Re_Password</label>
+        <input type="password" id="re_password" name="re_password" required>
+
+        <label for="phone">Phone Number</label>
+        <input type="text" id="phone" name="phone" required>
+        {{err2}}
+        <label for="user_type">Register As</label>
+        <select id="user_type" name="user_type" onchange="toggleOrganizerFields()">
+            <option value="attendee">Attendee</option>
+            <option value="organizer">Organizer</option>
+        </select>
+
+        <div id="organizer_fields" class="hidden">
+            <label for="company_name">Company Name</label>
+            <input type="text" id="company_name" name="company_name">
+
+            <label for="website">Website</label>
+            <input type="url" id="website" name="website">
+        </div>
+
+        <button type="submit">Register</button>
+        {{err3}}
+    </form>
+</div>
+
+<script>
+    function toggleOrganizerFields() {
+        const userType = document.getElementById("user_type").value;
+        const organizerFields = document.getElementById("organizer_fields");
+
+        if (userType === "organizer") {
+            organizerFields.classList.remove("hidden");
+        } else {
+            organizerFields.classList.add("hidden");
+        }
+    }
+</script>
+
+</body>
+</html>
