@@ -1,157 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Design by foolishdeveloper.com -->
+    {% load static %}
     <title>Login</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0px;
+            padding: 0px;
+        }
+        .bg-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1; /* Make sure it stays behind other content */
+            opacity: 0.7;
+        }
+        .bg-image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Dark overlay with opacity */
+            z-index: -1; /* Ensure the overlay is behind the content */
+        }
 
-    <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
-    <!--Stylesheet-->
-    <style media="screen">
-      *,
-        *:before,
-        *:after{
-            padding: 0;
-            margin: 0;
-            box-sizing: border-box;
-        }
-        body{
-            background-color: #080710;
-        }
-        .background{
-            width: 430px;
-            height: 520px;
-            position: absolute;
-            transform: translate(-50%,-50%);
-            left: 50%;
-            top: 50%;
-        }
-        .background .shape{
-            height: 200px;
-            width: 200px;
-            position: absolute;
-            border-radius: 50%;
-        }
-        .shape:first-child{
-            background: linear-gradient(
-                #1845ad,
-                #23a2f6
-            );
-            left: -80px;
-            top: -80px;
-        }
-        .shape:last-child{
-            background: linear-gradient(
-                to right,
-                #ff512f,
-                #f09819
-            );
-            right: -30px;
-            bottom: -80px;
-        }
-        form{
-            height: 520px;
-            width: 400px;
-            background-color: rgba(255,255,255,0.13);
-            position: absolute;
-            transform: translate(-50%,-50%);
-            top: 50%;
-            left: 50%;
+        .login-container {
+            max-width: 400px;
+            margin: auto;
+            margin-top: 10vh;
+            padding: 30px;
             border-radius: 10px;
             backdrop-filter: blur(10px);
-            border: 2px solid rgba(255,255,255,0.1);
-            box-shadow: 0 0 40px rgba(8,7,16,0.6);
-            padding: 50px 35px;
+            background: rgba(0, 0, 0, 0.7);
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 1s ease-in-out;
         }
-        form *{
-            font-family: 'Poppins',sans-serif;
-            color: #ffffff;
-            letter-spacing: 0.5px;
-            outline: none;
-            border: none;
-            text-decoration: none
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        form h3{
-            font-size: 32px;
-            font-weight: 500;
-            line-height: 42px;
+        .login-container h3 {
             text-align: center;
+            font-weight: bold;
+            color: #ffd700;
         }
-
-        label{
-            display: block;
-            margin-top: 30px;
-            font-size: 16px;
-            font-weight: 500;
+        .login-container label {
+            color: #ddd;
         }
-        input{
-            display: block;
-            height: 50px;
+        .social-btn {
             width: 100%;
-            background-color: rgba(255,255,255,0.07);
-            border-radius: 3px;
-            padding: 0 10px;
-            margin-top: 8px;
-            font-size: 14px;
-            font-weight: 300;
-        }
-        ::placeholder{
-            color: #e5e5e5;
-        }
-        button{
-            margin-top: 50px;
-            width: 100%;
-            background-color: #ffffff;
-            color: #080710;
-            padding: 15px 0;
-            font-size: 18px;
-            font-weight: 600;
+            margin-bottom: 10px;
+            padding: 10px;
             border-radius: 5px;
-            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .social{
-          margin-top: 30px;
-          display: flex;
-
+        .social-btn i {
+            margin-right: 8px;
         }
-        .social div{
-          background: red;
-          width: 150px;
-          border-radius: 3px;
-          padding: 5px 10px 10px 5px;
-          background-color: rgba(255,255,255,0.27);
-          color: #eaf0fb;
-          text-align: center;
+        button:hover {
+            transform: scale(1.05);
+            transition: 0.3s;
         }
-        .social div:hover{
-          background-color: rgba(255,255,255,0.47);
-        }
-        .social .fb{
-          margin-left: 25px;
-        }
-        .social i{
-          margin-right: 4px;
-        }
-
     </style>
 </head>
 <body>
+    <img src="{% static '/images/backgrounds/header.jpg' %}" alt="Background Image" class="bg-image">
+    <div class="bg-image-overlay"></div>
+    <div class="container">
+        <div class="login-container p-4">
+            <h3><i class="fas fa-user-circle"></i> Login</h3>
+            <form id="loginForm" method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="loginType" class="form-label">Select Login Type</label>
+                    <select id="loginType" name="loginType" class="form-select">
+                        <option value="email">Email</option>
+                        <option value="phone">Phone</option>
+                        <option value="username">Username</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="loginInput" class="form-label">Enter Credentials</label>
+                    <input type="text" class="form-control" id="loginInput" name="loginInput" placeholder="Enter Email, Phone, or Username" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter Password" required>
+                </div>
+                <button type="submit" class="btn btn-warning w-100">Log In</button>
+                {% if err %}
+                    {{err}}
+                {% endif %}
+            </form>
 
-    <form>
-        <h3>Login Here</h3>
-
-        <label for="username">Username</label>
-        <input type="text" placeholder="Email or Phone" id="username">
-
-        <label for="password">Password</label>
-        <input type="password" placeholder="Password" id="password">
-
-        <button>Log In</button>
-        <div class="social">
-          <div class="go"><i class="fab fa-google"></i>  Google</div>
-          <div class="fb"><a href="Register">Register Here</a></div>
+            <hr class="my-4 text-light">
+            <button class="social-btn bg-red-600 text-white"><i class="fab fa-google"></i> Sign in with Google</button>
+            <div class="text-center mt-3">
+                <a href="Register" class="text-warning">Register Here</a>
+            </div>
         </div>
-    </form>
+    </div>
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", function(event) {
+
+            let loginType = document.getElementById("loginType").value;
+            let loginInput = document.getElementById("loginInput").value;
+            let password = document.getElementById("password").value;
+            event.preventDefault();  // Prevent default form submission
+            this.submit();
+        });
+    </script>
 </body>
 </html>

@@ -21,7 +21,7 @@
                 <!-- logo -->
                 <div class="site-branding">
                     <a class="logo" href="index.html">
-                        
+
                         <!-- logo image  -->
                         <img src="{% static 'images/logo.png' %}" alt="Logo">
 
@@ -42,30 +42,20 @@
                 <ul class="nav navbar-nav navbar-right">
 
                     <!-- navigation menu -->
-                    <li class="active"><a data-scroll href="#about">About</a></li>
-                    <li><a data-scroll href="#speakers">Speakers</a></li>              
-                    <li><a data-scroll href="#schedule">Schedule</a></li>
+                    <li class="active"><a data-scroll href="#about" style="color: #f74430; font-weight: bold;">About</a></li>
+                    <li><a data-scroll href="#schedule" style="color: #f74430; font-weight: bold;">Schedule</a></li>
                     <!-- <li><a data-scroll href="#">Sponsorship</a></li> -->
-                    <li><a data-scroll href="#faq">FAQ</a></li>
-                    <li><a data-scroll href="#photos">Photos</a></li>
-                    <li><a data-scroll href="Login">Login/Signup</a></li>
+                    <li><a data-scroll href="#photos" style="color: #f74430; font-weight: bold;">Photos</a></li>
+                     <!-- Logout Button (Triggers the Modal) -->
+                    <li><a href="#" class="logout-btn" style="color: #f74430" data-toggle="modal" data-target="#logoutModal">Logout</a></li>
+
                 </ul>
             </div>
         </div><!-- /.container -->
     </nav>
 
-    <header id="site-header" class="site-header valign-center"> 
-        <div class="intro">
+    <header id="site-header" class="site-header valign-center">
 
-            <h2>25 April, 2015 / Townhall California</h2>
-            
-            <h1>Freelancer Conference 2015</h1>
-            
-            <p>First &amp; Largest Conference</p>
-            
-            <a class="btn btn-white" data-scroll href="#registration">Register Now</a>
-        
-        </div>
     </header>
 
     <section id="about" class="section about">
@@ -95,7 +85,7 @@
                         <li>Have dedicated 2-to-1 meetings with the experts</li>
                         <li>Reach more consumers for less by learning new digital media skills</li>
                         <li>Save money when spending in online advertising</li>
-                    
+
                     </ul>
 
                 </div><!-- /.col-sm-6 -->
@@ -153,7 +143,7 @@
             <div class="row">
                 <div class="col-md-12">
                     <ul class="grid">
-                        
+
                         <li class="grid-item grid-item-sm-6">
                             <img alt="" class="img-responsive center-block" src="{% static 'images/photos/photos-1.jpg' %}">
                         </li>
@@ -165,7 +155,7 @@
                         <li class="grid-item grid-item-sm-3">
                             <img alt="" class="img-responsive center-block" src="{% static 'images/photos/photos-3.jpg' %}">
                         </li>
-                    
+
                         <li class="grid-item grid-item-sm-3">
                             <img alt="" class="img-responsive center-block" src="{% static 'images/photos/photos-5.jpg' %}">
                         </li>
@@ -191,7 +181,7 @@
                         </li>
                     </ul>
                 </div>
-            </div>            
+            </div>
         </div>
     </section>
 
@@ -210,5 +200,27 @@
             </div>
         </div>
     </footer>
+    <!-- Logout Confirmation Modal -->
+    <div id="logoutModal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Confirm Logout</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to logout?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery and Bootstrap JS (Required for Modal) -->
+    <script src="{% static 'bower_components/jquery/dist/jquery.min.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap/dist/js/bootstrap.min.js' %}"></script>
 </body>
 </html>
