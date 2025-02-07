@@ -3,13 +3,13 @@ from django.db import models
 
 class user_Data(models.Model):
     USER_TYPE_CHOICES = [
-        ('attendee', 'Attendee'),
+        ('attendee', 'accounts'),
         ('organizer', 'Organizer'),
     ]
     objects = None
-    Username = models.CharField(max_length=50,default=None, unique=True)
+    username = models.CharField(max_length=50,default=None, unique=True)
     Name = models.CharField(max_length=50)
-    Email = models.EmailField()
+    Email = models.EmailField(unique=True)
     Password = models.CharField(max_length=500)
     Phone = models.CharField(max_length=10)
     User_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES, default='attendee')

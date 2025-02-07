@@ -55,7 +55,7 @@ ROOT_URLCONF = 'Event.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['Template'],
+        'DIRS': ['Template', 'Template/accounts'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -77,13 +77,14 @@ WSGI_APPLICATION = 'Event.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'Event_M',  # Replace with your DB name
-        'USER': 'root',  # Replace with your MySQL username
-        'PASSWORD': '1104947@Kp',  # Replace with your MySQL password
-        'HOST': 'localhost',  # Change if using a remote server
-        'PORT': '3306',  # Default MySQL port
+        'NAME': 'Event_M',
+        'USER': 'root',
+        'PASSWORD': '1104947@Kp',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
+
 
 
 # Password validation

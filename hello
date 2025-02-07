@@ -1,0 +1,33 @@
+ """ if request.method == 'POST':
+        login_type = request.POST.get('loginType')
+        login_input = request.POST.get('loginInput')
+        password = request.POST.get('password')
+
+        user = None  # Store the user object
+
+        try:
+            if login_type == 'email':
+                user = user_Data.objects.get(Email=login_input)
+            elif login_type == 'phone':
+                user = user_Data.objects.get(Phone=login_input)
+            elif login_type == 'username':
+                user = user_Data.objects.get(Username=login_input)
+
+            # Authenticate using check_password
+            if user and check_password(password, user.Password):
+                request.session['user_id'] = user.id  # Store user ID in session
+
+                # Redirect based on user type
+                if user.User_type.lower() == 'organizer':
+                    return redirect('organizer_dashboard')
+                elif user.User_type.lower() == 'attendee':
+                    return redirect('attendee_dashboard')
+            else:
+                err = 'Incorrect password!'
+                return render(request, 'login.html', context={'err': err})
+        except user_Data.DoesNotExist:
+            err = "Account does not exist!"
+            return render(request, 'login.html', context={'err': err})"""
+
+
+            G:\Event_Project\Event-Management\venv\Lib\site-packages\django\contrib\auth\__init__.py
