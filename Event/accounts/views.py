@@ -3,43 +3,42 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.hashers import check_password, make_password
 from django.views.decorators.csrf import csrf_protect
 from .models import *
+from django.urls import reverse
+from core.models import Event
 
 # Home Page
 def home(request):
+
     return render(request, 'index.html')
 
 # Login View
 @csrf_protect
 def login(request):
-    print('0')
     if request.method == 'POST':
-        print('1')
         login_type = request.POST.get('loginType')
         login_input = request.POST.get('loginInput')
         password = request.POST.get('password')
-        print('2')
         user = None  # Store the user object
-        print('3')
         try:
             if login_type == 'email':
                 user = user_Data.objects.get(Email=login_input)
-                print('4')
             elif login_type == 'phone':
                 user = user_Data.objects.get(Phone=login_input)
-                print('5')
             elif login_type == 'username':
                 user = user_Data.objects.get(Username=login_input)
-                print('6')
-            print(user)
+            Name = user.Name
+
             # Authenticate using check_password
             if user and check_password(password, user.Password):
                 request.session['user_id'] = user.id  # Store user ID in session
 
                 # Redirect based on user type
                 if user.User_type.lower() == 'organizer':
-                    return redirect(organizer)
+                    url = reverse(organizer)  # Name of the URL pattern
+                    return redirect(f"{url}?Name={user.Name}")
                 elif user.User_type.lower() == 'attendee':
-                    return redirect(attendee)
+                    url = reverse(attendee)  # Name of the URL pattern
+                    return redirect(f"{url}?Name={user.Name}")
             else:
                 err = 'Incorrect password!'
                 return render(request, 'Login.html', context={'err': err})
@@ -110,7 +109,8 @@ def organizer(request):
 
 # Attendee Dashboard View
 def attendee(request):
-    return render(request, 'accounts/Attendee.html')
+    Data = Event.objects.all()
+    return render(request, 'accounts/Attendee.html',{'Data':Data})
 
 def logout_view(request):
     logout(request)
