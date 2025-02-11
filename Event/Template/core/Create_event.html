@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Event</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script>
+        function toggleOtherCategory() {
+            let category = document.getElementById("category");
+            let otherCategoryDiv = document.getElementById("other-category-div");
+            if (category.value === "other") {
+                otherCategoryDiv.style.display = "block";
+            } else {
+                otherCategoryDiv.style.display = "none";
+            }
+        }
+    </script>
+    <style>
+        /* Footer Styling */
+        footer {
+            margin-top: 50px; /* Added space between form and footer */
+        }
+    </style>
+</head>
+<body class="container mt-5">
+    <h2>Create an Event</h2>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <!-- username -->
+        <div class="mb-3">
+            <label class="form-label">Username</label>
+            <input type="text" class="form-control" name="username" required>
+        </div>
+
+        <!-- Event Title -->
+        <div class="mb-3">
+            <label class="form-label">Event Title</label>
+            <input type="text" class="form-control" name="title" required>
+        </div>
+
+        <!-- Description -->
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" name="description" rows="4" required></textarea>
+        </div>
+
+        <!-- Category -->
+        <div class="mb-3">
+            <label class="form-label">Category</label>
+            <select class="form-select" name="category" id="category" onchange="toggleOtherCategory()" required>
+                <option value="workshop">Workshop</option>
+                <option value="conference">Conference</option>
+                <option value="business_conference">Business Conference</option>
+                <option value="seminar">Seminar & Workshop</option>
+                <option value="networking">Networking Event</option>
+                <option value="trade_show">Trade Show & Expo</option>
+                <option value="agm">Annual General Meeting (AGM)</option>
+                <option value="team_building">Team Building Activity</option>
+                <option value="product_launch">Product Launch</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
+
+        <!-- Other Category (Hidden by Default) -->
+        <div class="mb-3" id="other-category-div" style="display: none;">
+            <label class="form-label">Specify Other Category</label>
+            <input type="text" class="form-control" name="category">
+        </div>
+
+        <!-- Start & End Date -->
+        <div class="row mb-3">
+            <div class="col">
+                <label class="form-label">Start Date & Time</label>
+                <input type="datetime-local" class="form-control" name="start_date" required>
+            </div>
+            <div class="col">
+                <label class="form-label">End Date & Time</label>
+                <input type="datetime-local" class="form-control" name="end_date" required>
+            </div>
+        </div>
+
+        <!-- Venue & Address -->
+        <div class="mb-3">
+            <label class="form-label">Venue Name</label>
+            <input type="text" class="form-control" name="venue" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Venue Address</label>
+            <textarea class="form-control" name="venue_address" rows="2" required></textarea>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="mb-3">
+            <label class="form-label">Venue Contact Number</label>
+            <input type="tel" class="form-control" name="contact_number" required>
+        </div>
+
+        <!-- Social Media Links -->
+        <div class="mb-3">
+            <label class="form-label">Organizer's Social Media Link</label>
+            <input type="url" class="form-control" name="social_media">
+        </div>
+
+        <!-- Max Attendees & Price -->
+        <div class="row mb-3">
+            <div class="col">
+                <label class="form-label">Maximum Attendees</label>
+                <input type="number" class="form-control" name="max_attendees" required>
+            </div>
+            <div class="col">
+                <label class="form-label">Price (₹)</label>
+                <input type="number" class="form-control" name="price" step="0.01" required>
+            </div>
+        </div>
+
+        <!-- PDF Upload (Optional) -->
+        <div class="mb-3">
+            <label class="form-label">Upload Event Details (PDF) <small>(Optional)</small></label>
+            <input type="file" class="form-control" name="event_pdf" accept=".pdf">
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary">Create Event</button>
+    </form>
+
+    <!-- Footer -->
+    <footer>
+
+    </footer>
+</body>
+</html>
