@@ -27,4 +27,5 @@ class Event(models.Model):
     max_attendees = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     event_pdf = models.FileField(upload_to='event_pdfs/', blank=True, null=True)
+    event_image = models.ImageField(upload_to='event_images/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)

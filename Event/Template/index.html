@@ -99,7 +99,7 @@
     </section>
 
 
-    <section id="schedule" class="section schedule">
+     <section id="schedule" class="section schedule">
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
@@ -107,33 +107,20 @@
                 </div>
             </div>
             <div class="row">
+                {%  for i in Data %}
+                <a href="{% url 'core:details' i.id %}">
                 <div class="col-md-4 col-sm-6">
                     <div class="schedule-box">
                         <div class="time">
-                            <time datetime="09:00">09:00 am</time> - <time datetime="22:00">10:00 am</time>
+                            <time>{{i.start_date}}</time> - <time>{{i.end_date}}</time>
                         </div>
-                        <h3>Welcome and intro</h3>
-                        <p>Mustafizur Khan, SD Asia</p>
+                        <h3>{{i.title}}</h3>
+                        <p>{{i.venue}}</p>
+                        <p>{{i.venue_address}}</p>
                     </div>
                 </div>
-                <div class="col-md-4 col-sm-6">
-                    <div class="schedule-box">
-                        <div class="time">
-                            <time datetime="10:00">10:00 am</time> - <time datetime="22:00">10:00 am</time>
-                        </div>
-                        <h3>Tips and share</h3>
-                        <p>Mustafizur Khan, SD Asia</p>
-                    </div>
-                </div>
-                <div class="col-md-4 col-sm-6">
-                    <div class="schedule-box">
-                        <div class="time">
-                            <time datetime="10:00">10:00 am</time> - <time datetime="22:00">10:00 am</time>
-                        </div>
-                        <h3>View from the top</h3>
-                        <p>Mustafizur Khan, SD Asia</p>
-                    </div>
-                </div>
+                </a>
+                {% endfor %}
             </div>
         </div>
     </section>

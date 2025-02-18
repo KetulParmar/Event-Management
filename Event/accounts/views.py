@@ -8,8 +8,9 @@ from core.models import Event
 
 # Home Page
 def home(request):
+    D = Event.objects.all()
+    return render(request, 'index.html', {'Data':D})
 
-    return render(request, 'index.html')
 
 # Login View
 @csrf_protect
@@ -34,11 +35,12 @@ def login(request):
 
                 # Redirect based on user type
                 if user.User_type.lower() == 'organizer':
-                    url = reverse(organizer)  # Name of the URL pattern
-                    return redirect(f"{url}?Name={user.Name}")
+                    url = reverse('accounts:Organizer')  # Use the named URL pattern
+                    return redirect(f"{url}?Name={Name}")
+
                 elif user.User_type.lower() == 'attendee':
-                    url = reverse(attendee)  # Name of the URL pattern
-                    return redirect(f"{url}?Name={user.Name}")
+                    url = reverse('accounts:Attendee')  # Use 'accounts:Attendee' instead of the function reference
+                    return redirect(f"{url}?Name={Name}")
             else:
                 err = 'Incorrect password!'
                 return render(request, 'Login.html', context={'err': err})
@@ -114,4 +116,7 @@ def attendee(request):
 
 def logout_view(request):
     logout(request)
-    return redirect(home)
+    return redirect(reverse('accounts:home'))
+
+def details(request):
+    return render(request, 'core/details.html')

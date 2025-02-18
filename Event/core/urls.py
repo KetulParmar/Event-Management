@@ -9,6 +9,9 @@ urlpatterns = [
     path('Home',views.home1, name='Home'),
     path('Create_user', views.create_event, name='Create_event'),
     path('delete/<int:id>/', views.delete, name="delete_event"),
+    path('details/<int:id>/', views.details, name='details'),
+
+
 ]
 
 if settings.DEBUG:

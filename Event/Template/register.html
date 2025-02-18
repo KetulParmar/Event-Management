@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   {% load static %}
+  {% load socialaccount %}
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Register</title>
@@ -89,16 +90,44 @@
       padding: 12px;
       font-size: 1.1rem;
       border: none;
-      border-radius: 5px;
-      background: #ffd700;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #ffd700, #ffb700);
       color: #333;
       font-weight: bold;
       cursor: pointer;
-      transition: background 0.3s ease, transform 0.3s ease;
+      transition: all 0.3s ease-in-out;
+      box-shadow: 0 4px 10px rgba(255, 215, 0, 0.3);
     }
     .register-box button:hover {
-      background: #e6c200;
-      transform: scale(1.03);
+      background: linear-gradient(135deg, #ffb700, #ff9900);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(255, 165, 0, 0.5);
+    }
+    /* Google Sign-In button */
+    .google-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #db4437;
+      color: white;
+      font-size: 1.1rem;
+      font-weight: bold;
+      padding: 12px;
+      width: 100%;
+      border: none;
+      border-radius: 8px;
+      margin-top: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease-in-out;
+      box-shadow: 0 4px 10px rgba(219, 68, 55, 0.3);
+    }
+    .google-btn i {
+      margin-right: 10px;
+    }
+    .google-btn:hover {
+      background: #c1351d;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(219, 68, 55, 0.5);
     }
     /* Error messages */
     .error-msg {
@@ -169,36 +198,12 @@
                 <option value="organizer">Organizer</option>
               </select>
             </div>
-            <!-- Extra fields for organizers -->
-            <div id="organizer_fields" class="organizer-fields hidden">
-              <div class="mb-3">
-                <label for="company_name">Company Name</label>
-                <input type="text" id="company_name" name="company_name" placeholder="Your company name">
-              </div>
-              <div class="mb-3">
-                <label for="website">Website</label>
-                <input type="url" id="website" name="website" placeholder="https://example.com">
-              </div>
-            </div>
           </div>
         </div>
         <button type="submit">Register</button>
-        {% if err3 %}
-          <div class="error-msg">{{ err3 }}</div>
-        {% endif %}
+        <a href="{% provider_login_url 'google' %}"><button type="button" class="google-btn"><i class="fab fa-google"></i> Sign in with Google</button></a>
       </form>
     </div>
   </div>
-  <script>
-    function toggleOrganizerFields() {
-      const userType = document.getElementById("user_type").value;
-      const organizerFields = document.getElementById("organizer_fields");
-      if (userType === "organizer") {
-        organizerFields.classList.remove("hidden");
-      } else {
-        organizerFields.classList.add("hidden");
-      }
-    }
-  </script>
 </body>
 </html>

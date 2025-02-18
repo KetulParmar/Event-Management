@@ -1,5 +1,7 @@
 from django.db import models
 
+
+
 class user_Data(models.Model):
     USER_TYPE_CHOICES = [
         ('attendee', 'accounts'),
