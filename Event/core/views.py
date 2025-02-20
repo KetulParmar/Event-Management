@@ -5,23 +5,41 @@ from django.contrib import messages
 from .models import *
 from accounts.models import user_Data
 
+
 def home1(request):
-    data = Event.objects.all()
-    return render(request, 'home.html',{'events':data})
+    user_id = request.session.get('user_id')
+    if user_id:
+        user = user_Data.objects.get(id=user_id)
+        print(user.username)  # ✅ Correct way to access user details
+    else:
+        print("User is not logged in.")
+
+    data = Event.objects.filter(organizer_id=user_id)  # Get events created by this user
+    return render(request, 'home.html', {'events': data})
 
 def create_event(request):
     if request.method == "POST":
-        username1 = request.POST.get("username", "").strip()
-
+        print('1')
+        # Get the organizer from the form input
+        organizer1 = request.POST.get("organizer", "").strip()
+        print('2')
+        # Check if the organizer exists and matches the current logged-in user
         try:
-            us = user_Data.objects.get(username=username1)  # Use get() instead of filter()
+            print('3')
+            us = user_Data.objects.get(username=organizer1)  # Find user by username
         except user_Data.DoesNotExist:
+            print('4')
             return HttpResponse("User does not exist", status=404)
+        print(us.username)
+        print('11')
+        print('User authenticated:', request.user.is_authenticated)
+        print(request.user.username)
+        # Check if the organizer entered matches the logged-in user
+        """if us.username != request.user.username:  # Compare organizer's username with logged-in user's username
+            print('5')
+            return render(request, "create_event.html", {"err": "You cannot create an event for someone else."})"""
 
-        if not us or username1 != us.username:
-            return render(request, "create_event.html", {"err": "Username is incorrect"})
-
-        # Get form data
+        #Get the event data from the form
         title = request.POST.get("title", "").strip()
         description = request.POST.get("description", "").strip()
         category = request.POST.get("category", "").strip()
@@ -38,12 +56,13 @@ def create_event(request):
         # Get uploaded files (PDF & Image)
         event_pdf = request.FILES.get("event_pdf")
         event_image = request.FILES.get("event_image")  # Added image field
-
+        print('6')
         # Validate required fields
         if not title or not start_date or not end_date or not venue:
+            print('7')
             messages.error(request, "Title, start date, end date, and venue are required.")
             return redirect("core:create_event")
-
+        print('8')
         # Create and save the Event object
         Event.objects.create(
             title=title,
@@ -59,9 +78,10 @@ def create_event(request):
             max_attendees=max_attendees or None,
             price=price or None,
             event_pdf=event_pdf,
-            event_image=event_image  # Save image
+            event_image=event_image,  # Save image
+            organizer=us  # Store the correct organizer
         )
-
+        print('9')
         messages.success(request, "Your event has been created successfully.")
         return redirect("core:Home")
 

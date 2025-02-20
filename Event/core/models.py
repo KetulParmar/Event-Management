@@ -1,4 +1,5 @@
 from django.db import models
+from accounts.models import user_Data
 
 class Event(models.Model):
     CATEGORY_CHOICES = [
@@ -14,9 +15,10 @@ class Event(models.Model):
         ('other', 'Other'),
     ]
     objects = None
+    organizer = models.ForeignKey(user_Data, on_delete=models.CASCADE, related_name="events", default=None)
     title = models.CharField(max_length=255)
     description = models.TextField()
-    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='Workshop')
     other_category = models.CharField(max_length=255, blank=True, null=True)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()

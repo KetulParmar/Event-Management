@@ -1,10 +1,12 @@
-from django.contrib.auth import login, logout
-from django.shortcuts import render, redirect
-from django.contrib.auth.hashers import check_password, make_password
 from django.views.decorators.csrf import csrf_protect
-from .models import *
-from django.urls import reverse
 from core.models import Event
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.hashers import check_password, make_password
+from django.shortcuts import render, redirect,  get_object_or_404
+from django.urls import reverse
+from .models import *
+from accounts.models import user_Data
+from django.contrib.auth.backends import ModelBackend
 
 # Home Page
 def home(request):
@@ -14,41 +16,43 @@ def home(request):
 
 # Login View
 @csrf_protect
-def login(request):
+def login_view(request):
     if request.method == 'POST':
         login_type = request.POST.get('loginType')
         login_input = request.POST.get('loginInput')
         password = request.POST.get('password')
-        user = None  # Store the user object
+
+        user = None  # Initialize user object
+
         try:
             if login_type == 'email':
                 user = user_Data.objects.get(Email=login_input)
             elif login_type == 'phone':
                 user = user_Data.objects.get(Phone=login_input)
             elif login_type == 'username':
-                user = user_Data.objects.get(Username=login_input)
-            Name = user.Name
+                user = user_Data.objects.get(username=login_input)
 
-            # Authenticate using check_password
-            if user and check_password(password, user.Password):
+            # Check password manually (since we're not using Django's default User model)
+            if check_password(password, user.Password):
                 request.session['user_id'] = user.id  # Store user ID in session
+                #user.backend = ModelBackend()
+                #login(request, user)
+                request.user = user
+                print(request.user.username)
 
                 # Redirect based on user type
                 if user.User_type.lower() == 'organizer':
-                    url = reverse('accounts:Organizer')  # Use the named URL pattern
-                    return redirect(f"{url}?Name={Name}")
-
+                    return redirect(reverse('accounts:Organizer'))
                 elif user.User_type.lower() == 'attendee':
-                    url = reverse('accounts:Attendee')  # Use 'accounts:Attendee' instead of the function reference
-                    return redirect(f"{url}?Name={Name}")
+                    return redirect(reverse('accounts:Attendee'))
             else:
-                err = 'Incorrect password!'
-                return render(request, 'Login.html', context={'err': err})
+                return render(request, 'Login.html', {'err': 'Incorrect password!'})
+
         except user_Data.DoesNotExist:
-            err = "Account does not exist!"
-            return render(request, 'Login.html', context={'err': err})
+            return render(request, 'Login.html', {'err': 'Account does not exist!'})
 
     return render(request, 'Login.html')
+
 
 
 # Register View

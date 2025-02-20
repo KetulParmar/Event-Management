@@ -17,3 +17,7 @@ class user_Data(models.Model):
     #additonal for Organizer
     Company_Name = models.CharField(max_length=20, blank=True, null=True)
     Website = models.CharField(max_length=255, blank=True, null=True)
+
+@property
+def is_authenticated(self):
+    return True
