@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Event List</title>
@@ -8,86 +9,123 @@
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Custom Styles -->
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: url('{% static "images/backgrounds/bg-1.jpg" %}') no-repeat center center fixed;
+            background-size: cover;
+
+            color: #e0e0e0;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6); /* Dark overlay */
+            z-index: -1;
+        }
+
+        .container-box {
+            background: rgba(33, 37, 41, 0.9); /* Darker background */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
+        }
+    </style>
 </head>
-<body class="container mt-4">
+<body class="bg-gray-900 p-6">
 
-    <!-- Create Event Button -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-primary">Event List</h2>
-        <a href="{% url 'core:Create_event' %}" class="btn btn-success">+ Create Event</a>
+    <!-- Container -->
+    <div class="max-w-7xl mx-auto container-box">
+
+        <!-- Header Section -->
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-semibold text-gray-300">Event List</h2>
+            <a href="{% url 'core:Create_event' %}" class="px-4 py-2 bg-green-700 text-white rounded-lg shadow-md hover:bg-green-800">+ Create Event</a>
+        </div>
+
+        <!-- Display Messages -->
+        {% if mssg %}
+            <div class="alert alert-success text-center p-3 rounded-md bg-green-700 text-white">{{ mssg }}</div>
+        {% endif %}
+
+        <!-- Event Table -->
+        <div class="overflow-x-auto">
+            <table class="table-auto w-full border-collapse border border-gray-700 shadow-sm">
+                <thead>
+                    <tr class="bg-gray-800 text-white">
+                        <th class="p-3">Title</th>
+                        <th class="p-3">Category</th>
+                        <th class="p-3">Venue</th>
+                        <th class="p-3">Start Date</th>
+                        <th class="p-3">End Date</th>
+                        <th class="p-3">Contact</th>
+                        <th class="p-3">Price</th>
+                        <th class="p-3">Social Media</th>
+                        <th class="p-3">PDF</th>
+                        <th class="p-3">Poster</th>
+                        <th class="p-3">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-gray-900 divide-y divide-gray-700">
+                    {% for event in events %}
+                    <tr class="text-gray-300">
+                        <td class="p-3">{{ event.title }}</td>
+                        <td class="p-3">{{ event.category }}</td>
+                        <td class="p-3">{{ event.venue }}</td>
+                        <td class="p-3">{{ event.start_date }}</td>
+                        <td class="p-3">{{ event.end_date }}</td>
+                        <td class="p-3">{{ event.contact_number }}</td>
+                        <td class="p-3">₹{{ event.price }}</td>
+
+                        <!-- Social Media Link -->
+                        <td class="p-3 text-center">
+                            {% if event.social_media %}
+                                <a href="{{ event.social_media }}" target="_blank" class="text-blue-400 hover:underline">Visit</a>
+                            {% else %}
+                                <span class="text-gray-500">No Link</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- View PDF -->
+                        <td class="p-3 text-center">
+                            {% if event.event_pdf %}
+                                <a href="{{ event.event_pdf.url }}" target="_blank" class="text-green-400 hover:underline">View</a>
+                            {% else %}
+                                <span class="text-gray-500">No File</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- View Image -->
+                        <td class="p-3 text-center">
+                            {% if event.event_image %}
+                                <a href="{{ event.event_image.url }}" target="_blank" class="text-indigo-400 hover:underline">View</a>
+                            {% else %}
+                                <span class="text-gray-500">No File</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Action Buttons -->
+                        <td class="p-3 flex space-x-2">
+                            <a href="#" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Edit</a>
+                            <a href="{% url 'core:delete_event' event.id %}" class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- Display Messages -->
-    {% if mssg %}
-        <div class="alert alert-success">{{ mssg }}</div>
-    {% endif %}
-
-    <!-- Event Table -->
-    <div class="table-responsive">
-        <table class="table table-bordered table-striped">
-            <thead class="table-dark">
-                <tr>
-
-                    <th>Title</th>
-                    <th>Category</th>
-                    <th>Venue</th>
-                    <th>Start Date</th>
-                    <th>End Date</th>
-                    <th>Contact</th>
-                    <th>Price</th>
-                    <th>Social Media</th>
-                    <th>PDF</th>
-                    <th>Event Poster</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for event in events %}
-                <tr>
-
-                    <td>{{ event.title }}</td>
-                    <td>{{ event.category }}</td>
-                    <td>{{ event.venue }}</td>
-                    <td>{{ event.start_date }}</td>
-                    <td>{{ event.end_date }}</td>
-                    <td>{{ event.contact_number }}</td>
-                    <td>₹{{ event.price }}</td>
-
-                    <!-- Clickable Social Media Link -->
-                    <td>
-                        {% if event.social_media %}
-                            <a href="{{ event.social_media }}" target="_blank" class="btn btn-info btn-sm">Visit</a>
-                        {% else %}
-                            No Link
-                        {% endif %}
-                    </td>
-
-                    <!-- View PDF/Image -->
-                    <td>
-                        {% if event.event_pdf %}
-                            <a href="{{ event.event_pdf.url }}" target="_blank" class="btn btn-primary btn-sm">View</a>
-                        {% else %}
-                            No File
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if event.event_pdf %}
-                            <a href="{{ event.event_image.url }}" target="_blank" class="btn btn-primary btn-sm">View</a>
-                        {% else %}
-                            No File
-                        {% endif %}
-                    </td>
-                    <td><a href="#" class="btn btn-primary btn-sm">Edit</a><a href="{% url 'core:delete_event' event.id %}" class="btn btn-danger">Delete</a></td>
-                </tr>
-
-
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Bootstrap 5 JS (Optional, for interactive features like dropdowns) -->
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>

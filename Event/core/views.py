@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
 from .models import Event
+from django.contrib.auth.decorators import login_required
 from accounts.models import user_Data
 
 def home1(request):
@@ -78,6 +79,7 @@ def delete(request, id):
     event.delete()
     messages.success(request, "Event deleted successfully.")
     return redirect('core:Home')
+
 
 def details(request, id):
     event = get_object_or_404(Event, id=id)

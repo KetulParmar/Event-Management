@@ -7,6 +7,7 @@ from django.urls import reverse
 from .models import *
 from accounts.models import user_Data
 from django.contrib.auth.backends import ModelBackend
+from django.contrib.auth.decorators import login_required
 
 # Home Page
 def home(request):
@@ -56,6 +57,7 @@ def login_view(request):
 
 
 # Register View
+@login_required
 @csrf_protect
 def register(request):
     if request.method == 'POST':
@@ -122,5 +124,6 @@ def logout_view(request):
     logout(request)
     return redirect(reverse('accounts:home'))
 
+@login_required
 def details(request):
     return render(request, 'core/details.html')
