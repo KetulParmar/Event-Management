@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ event.title }} - Event Details</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+    <!-- Custom Styles -->
+    <style>
+        .event-banner {
+            position: relative;
+            height: 500px;
+            background-size: cover;
+            background-position: center;
+        }
+        .event-banner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+        .event-info-card {
+            transition: transform 0.3s;
+        }
+        .event-info-card:hover {
+            transform: scale(1.03);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <img src="{% static 'images/logo.png' %}" alt="Logo" style="height: 40px;"> <!-- Replace with your logo path -->
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Events</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Contact</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Event Banner -->
+<div class="event-banner" style="background-image: url('{{ event.event_image.url }}');">
+    <div class="event-banner-overlay">
+        <div>
+            <h1 class="text-4xl font-bold">{{ event.title }}</h1>
+            <p class="text-lg">{{ event.category }} | {{ event.start_date }} - {{ event.end_date }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Event Details Section -->
+<div class="container mx-auto py-8">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <!-- Left Side: Event Info -->
+        <div class="md:col-span-2 bg-white shadow-lg p-6 rounded-lg">
+            <h2 class="text-2xl font-semibold mb-4">Event Details</h2>
+            <p class="text-gray-700 mb-2"><strong>📍 Venue:</strong> {{ event.venue }}, {{ event.venue_address }}</p>
+            <p class="text-gray-700 mb-2"><strong>📞 Contact:</strong> {{ event.contact_number }}</p>
+            <p class="text-gray-700 mb-2"><strong>👥 Max Attendees:</strong> {{ event.max_attendees }}</p>
+            <p class="text-gray-700 mb-2"><strong>💰 Price:</strong> ₹{{ event.price }}</p>
+            <p class="text-gray-700 mb-2"><strong>🕒 Duration:</strong> {{ event.duration }}</p>
+
+            <h3 class="text-xl font-semibold mt-4">Why should you attend?</h3>
+            <p class="text-gray-600 mt-2">{{ event.description }}</p>
+
+            {% if event.social_media %}
+                <a href="{{ event.social_media }}" class="btn btn-primary mt-4">Follow on Social Media</a>
+            {% endif %}
+            {% if event.event_pdf %}
+                <a href="{{ event.event_pdf.url }}" target="_blank" class="btn btn-primary mt-4">
+                📄 View Event PDF
+                </a>
+            {% endif %}
+        </div>
+
+        <!-- Right Side: Extra Info -->
+        <div>
+            <!-- Booking Section -->
+            <div class="bg-white shadow-lg p-4 rounded-lg mb-4 event-info-card">
+                <h3 class="text-lg font-semibold">🎟️ Book Your Spot</h3>
+                <p class="text-gray-600 mb-2">Tickets starting from ₹{{ event.price }}</p>
+                <button class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded">Book Now</button>
+            </div>
+
+            <!-- Interested Section -->
+            <div class="bg-white shadow-lg p-4 rounded-lg mb-4 event-info-card">
+                <h3 class="text-lg font-semibold">❤️ Interested?</h3>
+                <p class="text-gray-600 mb-2">Click below to stay updated</p>
+                <button class="bg-gray-200 hover:bg-gray-300 text-black py-2 px-4 rounded">Interested?</button>
+            </div>
+
+            <!-- Location Map -->
+            <div class="bg-white shadow-lg p-4 rounded-lg event-info-card">
+                <h3 class="text-lg font-semibold">📍 Location</h3>
+                <iframe
+                    src="https://maps.google.com/maps?q={{ event.venue_address|urlencode }}&output=embed"
+                    width="100%" height="200" style="border:0;" allowfullscreen="" loading="lazy">
+                </iframe>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% load static %}
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register</title>
+  <!-- Bootstrap & Tailwind for utility classes -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Reset and basic settings */
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+    body {
+      background: url("{% static 'images/backgrounds/header.jpg' %}") no-repeat center center fixed;
+      background-size: cover;
+      font-family: Arial, sans-serif;
+      color: #fff;
+      position: relative;
+    }
+    .bg-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      z-index: -1;
+    }
+    /* Center the registration box */
+    .form-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    /* Registration box styling */
+    .register-box {
+      width: 100%;
+      max-width: 800px;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      padding: 30px;
+      animation: fadeIn 1s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .register-box h3 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #ffd700;
+      font-size: 1.75rem;
+    }
+    /* Input and select styling */
+    .register-box label {
+      font-weight: 500;
+      margin-bottom: 5px;
+      color: #ddd;
+    }
+    .register-box input,
+    .register-box select {
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      background: #f9f9f9;
+      color: #333;
+    }
+    .register-box input:focus,
+    .register-box select:focus {
+      outline: none;
+      border-color: #ffd700;
+      box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+    }
+    /* Register button styling */
+    .register-box button {
+      width: 100%;
+      padding: 12px;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #ffd700, #ffb700);
+      color: #333;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease-in-out;
+      box-shadow: 0 4px 10px rgba(255, 215, 0, 0.3);
+    }
+    .register-box button:hover {
+      background: linear-gradient(135deg, #ffb700, #ff9900);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(255, 165, 0, 0.5);
+    }
+    /* Google Sign-In button */
+    .google-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #db4437;
+      color: white;
+      font-size: 1.1rem;
+      font-weight: bold;
+      padding: 12px;
+      width: 100%;
+      border: none;
+      border-radius: 8px;
+      margin-top: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease-in-out;
+      box-shadow: 0 4px 10px rgba(219, 68, 55, 0.3);
+    }
+    .google-btn i {
+      margin-right: 10px;
+    }
+    .google-btn:hover {
+      background: #c1351d;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(219, 68, 55, 0.5);
+    }
+    /* Error messages */
+    .error-msg {
+      font-size: 0.9rem;
+      color: #ff6b6b;
+      margin-top: -10px;
+      margin-bottom: 10px;
+    }
+    /* Organizer fields container */
+    .organizer-fields {
+      transition: all 0.3s ease;
+    }
+    .organizer-fields.hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-overlay"></div>
+  <div class="form-container">
+    <div class="register-box">
+      <h3><i class="fas fa-user-plus"></i> Register</h3>
+      <form method="POST">
+        {% csrf_token %}
+        <div class="row">
+          <!-- Left column: Personal Details -->
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="username">Username</label>
+              <input type="text" id="username" name="username" placeholder="e.g. xyz_07" required>
+              {% if err %}
+                <div class="error-msg">{{ err }}</div>
+              {% endif %}
+            </div>
+            <div class="mb-3">
+              <label for="full_name">Full Name</label>
+              <input type="text" id="full_name" name="full_name" placeholder="Your full name" required>
+            </div>
+            <div class="mb-3">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" placeholder="you@example.com" required>
+            </div>
+            <div class="mb-3">
+              <label for="phone">Phone Number</label>
+              <input type="text" id="phone" name="phone" placeholder="+1 234 567 890" required>
+              {% if err2 %}
+                <div class="error-msg">{{ err2 }}</div>
+              {% endif %}
+            </div>
+          </div>
+          <!-- Right column: Account Details -->
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="password">Password</label>
+              <input type="password" id="password" name="password" placeholder="Create a password" required>
+              {% if err1 %}
+                <div class="error-msg">{{ err1 }}</div>
+              {% endif %}
+            </div>
+            <div class="mb-3">
+              <label for="re_password">Re-Enter Password</label>
+              <input type="password" id="re_password" name="re_password" placeholder="Retype your password" required>
+            </div>
+            <div class="mb-3">
+              <label for="user_type">Register As</label>
+              <select id="user_type" name="user_type" onchange="toggleOrganizerFields()">
+                <option value="attendee">Attendee</option>
+                <option value="organizer">Organizer</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <button type="submit">Register</button>
+
+      </form>
+    </div>
+  </div>
+</body>
+</html>
