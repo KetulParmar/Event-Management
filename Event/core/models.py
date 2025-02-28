@@ -1,9 +1,7 @@
 from django.db import models
-from accounts.models import user_Data
+from django.conf import settings  # Use settings.AUTH_USER_MODEL for user reference
 from django.utils import timezone
-import razorpay
 from cloudinary.models import CloudinaryField
-from django.conf import settings
 
 class Event(models.Model):
     CATEGORY_CHOICES = [
@@ -19,7 +17,7 @@ class Event(models.Model):
         ('other', 'Other'),
     ]
 
-    organizer = models.ForeignKey(user_Data, on_delete=models.CASCADE, related_name="events", default=None)
+    organizer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="events")
     title = models.CharField(max_length=255)
     description = models.TextField()
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='Workshop')
@@ -44,6 +42,7 @@ class Event(models.Model):
     def __str__(self):
         return self.title
 
+
 class Ticket(models.Model):
     STATUS_CHOICES = [
         ('booked', 'Booked'),
@@ -51,14 +50,14 @@ class Ticket(models.Model):
         ('used', 'Used'),
     ]
 
-    user = models.ForeignKey(user_Data, on_delete=models.CASCADE, related_name="tickets")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="tickets")
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="tickets")
     quantity = models.PositiveIntegerField(default=1)
     booking_date = models.DateTimeField(default=timezone.now)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='booked')
 
     def __str__(self):
-        return f"{self.user.Name} - {self.event.title} ({self.quantity})"
+        return f"{self.user.username} - {self.event.title} ({self.quantity})"  # Use username instead of Name
 
 
 class Payment(models.Model):
@@ -68,14 +67,14 @@ class Payment(models.Model):
         ('failed', 'Failed'),
     ]
 
-    user = models.ForeignKey(user_Data, on_delete=models.CASCADE, related_name="payments")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="payments")
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="payments")
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    razorpay_order_id = models.CharField(max_length=300, unique=True)
+    razorpay_order_id = models.CharField(max_length=255, unique=True)
     razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
     razorpay_signature = models.CharField(max_length=255, blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.Name} - {self.event.title} - {self.status}"
+        return f"{self.user.username} - {self.event.title} - {self.status}"  # Use username instead of Name

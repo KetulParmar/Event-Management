@@ -151,3 +151,6 @@ DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 #razorpay_integration
 RAZORPAY_KEY_ID = "rzp_test_BGAtdn9itwDCse"
 RAZORPAY_SECRET_KEY = "AYZJSM8iDneOC7m66CfOyLFF"
+
+
+AUTH_USER_MODEL = 'accounts.user_Data'

@@ -23,7 +23,7 @@ def login_view(request):
         login_input = request.POST.get('loginInput')
         password = request.POST.get('password')
 
-        user = None  # Initialize user object
+        user = None
 
         try:
             if login_type == 'email':
@@ -33,13 +33,11 @@ def login_view(request):
             elif login_type == 'username':
                 user = user_Data.objects.get(username=login_input)
 
-            # Check password manually (since we're not using Django's default User model)
-            if check_password(password, user.Password):
-                request.session['user_id'] = user.id  # Store user ID in session
-                #user.backend = ModelBackend()
-                #login(request, user)
-                request.user = user
-                print(request.user.username)
+            # Authenticate using Django's system
+            auth_user = authenticate(request, username=user.username, password=password)
+
+            if auth_user:
+                login(request, auth_user)  # Log in the user using Django's session system
 
                 # Redirect based on user type
                 if user.User_type.lower() == 'organizer':
@@ -57,7 +55,6 @@ def login_view(request):
 
 
 # Register View
-@login_required
 @csrf_protect
 def register(request):
     if request.method == 'POST':
@@ -71,53 +68,48 @@ def register(request):
         company_name = request.POST['company_name']
         website = request.POST['website']
 
-        # Check if username or phone number already exists
         if user_Data.objects.filter(username=username).exists():
-            err = "Username already exists!"
-            return render(request, 'Register.html', context={'err': err})
+            return render(request, 'Register.html', {'err': "Username already exists!"})
 
         if user_Data.objects.filter(Phone=phone).exists():
-            err = "Phone number already registered!"
-            return render(request, 'Register.html', context={'err': err})
+            return render(request, 'Register.html', {'err': "Phone number already registered!"})
 
-        # Validate password and phone number length
         if password == re_password:
             if len(password) < 8:
-                err = "Password too short!"
-                return render(request, 'Register.html', context={'err1': err})
+                return render(request, 'Register.html', {'err1': "Password too short!"})
             elif len(password) > 20:
-                err = "Password too long!"
-                return render(request, 'Register.html', context={'err1': err})
+                return render(request, 'Register.html', {'err1': "Password too long!"})
             elif len(phone) != 10:
-                err = "Phone number must be 10 digits!"
-                return render(request, 'Register.html', context={'err2': err})
-            else:
-                hashed_password = make_password(password)
-                user = user_Data(
-                    username=username,
-                    Name=full_name,
-                    Email=email,
-                    Password=hashed_password,
-                    Phone=phone,
-                    User_type=user_type,
-                    Company_Name=company_name,
-                    Website=website
-                )
-                user.save()
-                return redirect(login)  # Redirect to login page
+                return render(request, 'Register.html', {'err2': "Phone number must be 10 digits!"})
+
+            user = user_Data(
+                username=username,
+                Name=full_name,
+                Email=email,
+                Phone=phone,
+                User_type=user_type,
+                Company_Name=company_name,
+                Website=website
+            )
+            user.set_password(password)  # Hash password before saving
+            user.save()
+            return redirect('accounts:login')
+
         else:
-            err1 = "Passwords do not match!"
-            return render(request, 'Register.html', context={'err3': err1})
+            return render(request, 'Register.html', {'err3': "Passwords do not match!"})
 
     return render(request, 'Register.html')
 
+
 # Organizer Dashboard View
 def organizer(request):
+    print(request.user)
     return render(request, 'accounts/Organizer.html')
 
 # Attendee Dashboard View
 def attendee(request):
     Data = Event.objects.all()
+    print(request.user)
     return render(request, 'accounts/Attendee.html',{'Data':Data})
 
 def logout_view(request):

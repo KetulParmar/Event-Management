@@ -157,10 +157,8 @@
           <div class="col-md-6">
             <div class="mb-3">
               <label for="username">Username</label>
-              <input type="text" id="username" name="username" placeholder="e.g. xyz_07" required>
-              {% if err %}
-                <div class="error-msg">{{ err }}</div>
-              {% endif %}
+              <input type="text" id="username" name="username" placeholder="e.g. xyz_07" required class="{% if err %}is-invalid{% endif %}">
+              <div class="invalid-feedback">{{ err }}</div>
             </div>
             <div class="mb-3">
               <label for="full_name">Full Name</label>
@@ -198,6 +196,19 @@
                 <option value="organizer">Organizer</option>
               </select>
             </div>
+
+            <!-- Organizer-Specific Fields (Initially Hidden) -->
+            <div id="organizer_fields" class="organizer-fields hidden">
+              <div class="mb-3">
+                <label for="company_name">Company Name</label>
+                <input type="text" id="company_name" name="company_name" placeholder="Enter your company name">
+              </div>
+              <div class="mb-3">
+                <label for="website">Company Website</label>
+                <input type="url" id="website" name="website" placeholder="https://yourcompany.com">
+              </div>
+            </div>
+
           </div>
         </div>
         <button type="submit">Register</button>
@@ -205,5 +216,13 @@
       </form>
     </div>
   </div>
+  <script>
+    function toggleOrganizerFields() {
+      const userType = document.getElementById('user_type').value;
+      const organizerFields = document.getElementById('organizer_fields');
+      organizerFields.style.display = userType === 'organizer' ? 'block' : 'none';
+    }
+  </script>
+
 </body>
 </html>

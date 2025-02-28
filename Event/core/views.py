@@ -1,3 +1,4 @@
+import razorpay
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -14,7 +15,6 @@ def home1(request):
         user = user_Data.objects.get(id=user_id)
     else:
         user = None
-
     data = Event.objects.filter(organizer_id=user_id) if user else []
     return render(request, 'home.html', {'events': data})
 
@@ -82,9 +82,16 @@ def delete(request, id):
     messages.success(request, "Event deleted successfully.")
     return redirect('core:Home')
 
-
+@login_required
 def details(request, id):
     event = get_object_or_404(Event, id=id)
+    user_id = request.session.get('user_id')  # Retrieve user ID from session
+    if user_id:
+        user = user_Data.objects.get(id=user_id)  # Fetch the user object
+    else:
+        user = None  # User is not logged in
+
+    print(user.Name)
     return render(request, 'details.html', {"event": event})
 
 def Ticket(request, id):
@@ -96,7 +103,7 @@ def Ticket(request, id):
 # Initialize Razorpay client
 client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET_KEY))
 
-@login_required
+
 @csrf_exempt
 def create_order(request, event_id):
     print('yes')
