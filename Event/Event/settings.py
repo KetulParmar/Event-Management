@@ -147,3 +147,7 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': 'Yq4CYsPx2oBmi97JZmcpMTjwkIM'
 }
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+#razorpay_integration
+RAZORPAY_KEY_ID = "rzp_test_BGAtdn9itwDCse"
+RAZORPAY_SECRET_KEY = "AYZJSM8iDneOC7m66CfOyLFF"

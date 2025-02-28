@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Ticket</title>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: url("{% static 'images/backgrounds/bg-1.jpg' %}") no-repeat center center/cover;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            width: 350px;
+            text-align: center;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        .btn-secondary {
+            background: #ccc;
+            color: black;
+        }
+        .btn-secondary:hover {
+            background: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Book Your Ticket</h2>
+        <form id="ticketForm">
+            <label for="event_name">Event Name:</label>
+            <input type="text" id="event_name" name="event_name" value="{{ event.title }}" readonly>
+
+            <label for="quantity">Quantity:</label>
+            <input type="number" id="quantity" name="quantity" min="1" value="1" required onchange="updatePrice()">
+
+            <p><strong>Total Price: ₹<span id="total_price">{{ event.price }}</span></strong></p>
+
+            <button type="button" id="rzp-button1" class="btn btn-primary">Proceed to Payment</button>
+            <button type="button" class="btn btn-secondary" onclick="cancelPayment()">Cancel Payment</button>
+        </form>
+    </div>
+    <script>
+        let basePrice = {{ event.price }};
+
+        function updatePrice() {
+            let quantity = document.getElementById("quantity").value;
+            document.getElementById("total_price").innerText = (quantity * basePrice).toFixed(2);
+        }
+
+        function cancelPayment() {
+            window.location.href = "/details.html";
+        }
+
+        document.getElementById("rzp-button1").onclick = function (e) {
+            e.preventDefault(); // Prevent default form submission
+
+            let quantity = document.getElementById("quantity").value;
+
+            if (!quantity || quantity <= 0) {
+                alert("Please enter a valid ticket quantity.");
+                return;
+            }
+
+            let totalAmount = quantity * basePrice * 100; // Convert to paise
+
+            fetch("{% url 'core:create_order' event.id %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                credentials: "include",
+                body: JSON.stringify({ "quantity": quantity })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.order_id) {
+                    throw new Error("Order creation failed!");
+                }
+
+                var options = {
+                    "key": "rzp_test_BGAtdn9itwDCse",
+                    "amount": totalAmount,
+                    "currency": "INR",
+                    "name": "Event Booking",
+                    "description": "Ticket Payment",
+                    "order_id": data.order_id,
+                    "handler": function (response) {
+                        alert("Payment Successful!");
+                        window.location.href = "{% url 'core:payment_success' %}";
+                    },
+                    "prefill": {
+                        "name": "{{ request.user.username }}",
+                        "email": "{{ request.user.email }}",
+                        "contact": "{{ request.user.profile.phone }}"
+                    },
+                    "theme": {
+                        "color": "#007bff"
+                    }
+                };
+
+                var rzp1 = new Razorpay(options);
+                rzp1.open();
+            })
+            .catch(error => {
+                console.error("Error creating order:", error);
+                alert("Failed to initiate payment. Please try again.");
+            });
+        };
+    </script>
+
+</body>
+</html>

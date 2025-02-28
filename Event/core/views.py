@@ -1,10 +1,12 @@
-from django.http import HttpResponse
-from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
-from django.contrib import messages
-from .models import Event
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
 from accounts.models import user_Data
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import *
+from razorpay.errors import BadRequestError, ServerError
 
 def home1(request):
     user_id = request.session.get('user_id')
@@ -84,3 +86,114 @@ def delete(request, id):
 def details(request, id):
     event = get_object_or_404(Event, id=id)
     return render(request, 'details.html', {"event": event})
+
+def Ticket(request, id):
+    event = get_object_or_404(Event, id=id)
+    return render(request,'Ticket.html', {"event": event})
+
+
+
+# Initialize Razorpay client
+client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET_KEY))
+
+@login_required
+@csrf_exempt
+def create_order(request, event_id):
+    print('yes')
+    if request.method == "POST":
+        print('no')
+        try:
+            data = json.loads(request.body)
+            quantity = int(data.get("quantity", 1))
+            print('1')
+            if quantity <= 0:
+                return JsonResponse({"error": "Invalid quantity"}, status=400)
+            print('2')
+            event = Event.objects.get(id=event_id)
+            user = request.user
+            print('3')
+            print(user)
+            # Ensure the user is authenticated
+            if not user.is_authenticated:
+                print('4')
+                return JsonResponse({"error": "User not authenticated"}, status=401)
+            print('5')
+            total_amount = int(event.price * quantity * 100)  # Convert to paise
+            print("Total Amount in paise:", total_amount)
+
+            # Create Razorpay order
+            order_data = {
+                "amount": total_amount,
+                "currency": "INR",
+                "payment_capture": "1"
+            }
+            print("Order Data:", order_data)
+
+            order = client.order.create(order_data)
+            print("Created Order:", order)
+
+            # Prevent duplicate orders
+            if Payment.objects.filter(razorpay_order_id=order["id"]).exists():
+                return JsonResponse({"error": "Duplicate order ID"}, status=400)
+
+            # Save order in database
+            payment = Payment.objects.create(
+                user=user,
+                event=event,
+                amount=event.price * quantity,
+                razorpay_order_id=order["id"],
+                status="pending"
+            )
+            print("Saved payment:", payment)
+
+            return JsonResponse({
+                "order_id": order["id"],
+                "amount": total_amount,
+                "currency": "INR",
+                "status": "created"
+            })
+
+        except Event.DoesNotExist:
+            return JsonResponse({"error": "Event not found"}, status=404)
+        except ValueError:
+            return JsonResponse({"error": "Invalid quantity format"}, status=400)
+        except Exception as e:
+            print("Unexpected error:", e)
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"message": "Order endpoint is working!"})
+
+
+
+
+@csrf_exempt
+def payment_success(request):
+    if request.method == "POST":
+        data = request.POST
+        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET_KEY))
+
+        try:
+            params_dict = {
+                'razorpay_order_id': data.get("razorpay_order_id"),
+                'razorpay_payment_id': data.get("razorpay_payment_id"),
+                'razorpay_signature': data.get("razorpay_signature")
+            }
+
+            client.utility.verify_payment_signature(params_dict)
+
+            # Update payment status
+            payment = Payment.objects.get(razorpay_order_id=params_dict["razorpay_order_id"])
+            payment.razorpay_payment_id = params_dict["razorpay_payment_id"]
+            payment.razorpay_signature = params_dict["razorpay_signature"]
+            payment.status = "completed"
+            payment.save()
+
+            return render(request, "payment_success.html", {"payment": payment})
+        except razorpay.errors.SignatureVerificationError:
+            return render(request, "payment_failed.html", {"error": "Signature verification failed"})
+        except Payment.DoesNotExist:
+            return render(request, "payment_failed.html", {"error": "Payment record not found"})
+        except Exception as e:
+            return render(request, "payment_failed.html", {"error": str(e)})
+
+    return JsonResponse({"error": "Invalid request"}, status=400)

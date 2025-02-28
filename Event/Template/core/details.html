@@ -113,7 +113,9 @@
             <div class="bg-white shadow-lg p-4 rounded-lg mb-4 event-info-card">
                 <h3 class="text-lg font-semibold">🎟️ Book Your Spot</h3>
                 <p class="text-gray-600 mb-2">Tickets starting from ₹{{ event.price }}</p>
-                <button class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded">Book Now</button>
+                <a href="{% url 'core:Ticket' event.id %}" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded">
+                Book Now
+                </a>
             </div>
 
             <!-- Interested Section -->
