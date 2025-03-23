@@ -1,12 +1,7 @@
-from django.views.decorators.csrf import csrf_protect
 from core.models import Event
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.hashers import check_password, make_password
-from django.shortcuts import render, redirect,  get_object_or_404
-from django.urls import reverse
 from .models import *
 from accounts.models import user_Data
-from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.decorators import login_required
 
 # Home Page
@@ -16,6 +11,12 @@ def home(request):
 
 
 # Login View
+from django.contrib.auth import authenticate, login
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.views.decorators.csrf import csrf_protect
+
+
 @csrf_protect
 def login_view(request):
     if request.method == 'POST':
@@ -33,11 +34,15 @@ def login_view(request):
             elif login_type == 'username':
                 user = user_Data.objects.get(username=login_input)
 
-            # Authenticate using Django's system
+            # Authenticate user
             auth_user = authenticate(request, username=user.username, password=password)
 
             if auth_user:
-                login(request, auth_user)  # Log in the user using Django's session system
+                login(request, auth_user)  # Log in user using Django's session system
+
+                # **Manually store the user_id in the session**
+                request.session['user_id'] = user.id
+                print("User ID stored in session:", request.session['user_id'])  # Debugging statement
 
                 # Redirect based on user type
                 if user.User_type.lower() == 'organizer':
@@ -51,7 +56,6 @@ def login_view(request):
             return render(request, 'Login.html', {'err': 'Account does not exist!'})
 
     return render(request, 'Login.html')
-
 
 
 # Register View
@@ -93,7 +97,7 @@ def register(request):
             )
             user.set_password(password)  # Hash password before saving
             user.save()
-            return redirect('accounts:login')
+            return redirect('accounts:Login')
 
         else:
             return render(request, 'Register.html', {'err3': "Passwords do not match!"})
@@ -103,14 +107,15 @@ def register(request):
 
 # Organizer Dashboard View
 def organizer(request):
-    print(request.user)
-    return render(request, 'accounts/Organizer.html')
+    name= request.user.Name
+
+    return render(request, 'accounts/Organizer.html', {'Name':name})
 
 # Attendee Dashboard View
 def attendee(request):
     Data = Event.objects.all()
-    print(request.user)
-    return render(request, 'accounts/Attendee.html',{'Data':Data})
+    name= request.user.Name
+    return render(request, 'accounts/Attendee.html',{'Data':Data, 'Name':name})
 
 def logout_view(request):
     logout(request)

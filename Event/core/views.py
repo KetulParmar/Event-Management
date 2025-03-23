@@ -7,16 +7,31 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import *
-from razorpay.errors import BadRequestError, ServerError
+from razorpay.errors import BadRequestError
+from core.models import Ticket
+from django.urls import reverse
+
 
 def home1(request):
     user_id = request.session.get('user_id')
     if user_id:
-        user = user_Data.objects.get(id=user_id)
+        try:
+            user = user_Data.objects.get(id=user_id)  # Fetch the user
+            if user.User_type == 'organizer':  # Check if the user is an organizer
+                events = Event.objects.filter(organizer=user)
+            else:
+                events = []
+        except user_Data.DoesNotExist:
+            user = None
+            events = []
+            print("User does not exist")
+
     else:
         user = None
-    data = Event.objects.filter(organizer_id=user_id) if user else []
-    return render(request, 'home.html', {'events': data})
+        events = []
+        print("No user logged in")
+
+    return render(request, 'home.html', {'events': events})
 
 def create_event(request):
     if request.method == "POST":
@@ -85,48 +100,38 @@ def delete(request, id):
 @login_required
 def details(request, id):
     event = get_object_or_404(Event, id=id)
-    user_id = request.session.get('user_id')  # Retrieve user ID from session
-    if user_id:
-        user = user_Data.objects.get(id=user_id)  # Fetch the user object
-    else:
-        user = None  # User is not logged in
+    seat = event.max_attendees - event.seat_booked
 
-    print(user.Name)
-    return render(request, 'details.html', {"event": event})
+    return render(request, 'details.html', {"event": event, "seat":seat})
 
-def Ticket(request, id):
+def ticket1(request, id):
     event = get_object_or_404(Event, id=id)
     return render(request,'Ticket.html', {"event": event})
-
 
 
 # Initialize Razorpay client
 client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET_KEY))
 
-
 @csrf_exempt
 def create_order(request, event_id):
-    print('yes')
     if request.method == "POST":
-        print('no')
         try:
             data = json.loads(request.body)
             quantity = int(data.get("quantity", 1))
-            print('1')
             if quantity <= 0:
                 return JsonResponse({"error": "Invalid quantity"}, status=400)
-            print('2')
-            event = Event.objects.get(id=event_id)
-            user = request.user
-            print('3')
-            print(user)
-            # Ensure the user is authenticated
+
+            event = get_object_or_404(Event, id=event_id)
+            user = request.user  # Ensure user is authenticated
+
             if not user.is_authenticated:
-                print('4')
                 return JsonResponse({"error": "User not authenticated"}, status=401)
-            print('5')
+
+            # 🔹 Check if enough seats are available
+            if event.seat_booked + quantity > event.max_attendees:
+                return JsonResponse({"error": "Not enough seats available"}, status=400)
+
             total_amount = int(event.price * quantity * 100)  # Convert to paise
-            print("Total Amount in paise:", total_amount)
 
             # Create Razorpay order
             order_data = {
@@ -134,24 +139,18 @@ def create_order(request, event_id):
                 "currency": "INR",
                 "payment_capture": "1"
             }
-            print("Order Data:", order_data)
 
             order = client.order.create(order_data)
-            print("Created Order:", order)
 
-            # Prevent duplicate orders
-            if Payment.objects.filter(razorpay_order_id=order["id"]).exists():
-                return JsonResponse({"error": "Duplicate order ID"}, status=400)
-
-            # Save order in database
+            # Save order details in Payment model
             payment = Payment.objects.create(
                 user=user,
                 event=event,
                 amount=event.price * quantity,
+                quantity=quantity,
                 razorpay_order_id=order["id"],
                 status="pending"
             )
-            print("Saved payment:", payment)
 
             return JsonResponse({
                 "order_id": order["id"],
@@ -159,25 +158,13 @@ def create_order(request, event_id):
                 "currency": "INR",
                 "status": "created"
             })
-
-        except Event.DoesNotExist:
-            return JsonResponse({"error": "Event not found"}, status=404)
-        except ValueError:
-            return JsonResponse({"error": "Invalid quantity format"}, status=400)
         except Exception as e:
-            print("Unexpected error:", e)
             return JsonResponse({"error": str(e)}, status=500)
-
-    return JsonResponse({"message": "Order endpoint is working!"})
-
-
-
 
 @csrf_exempt
 def payment_success(request):
     if request.method == "POST":
-        data = request.POST
-        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET_KEY))
+        data = json.loads(request.body)
 
         try:
             params_dict = {
@@ -188,19 +175,53 @@ def payment_success(request):
 
             client.utility.verify_payment_signature(params_dict)
 
+            # Fetch payment record
+            try:
+                payment = Payment.objects.get(razorpay_order_id=params_dict["razorpay_order_id"])
+            except Payment.DoesNotExist:
+                return JsonResponse({"status": "failed", "message": "Payment record not found!"})
+
+            # 🔹 Check if enough seats are available before finalizing payment
+            event = payment.event
+            if event.seat_booked + payment.quantity > event.max_attendees:
+                return JsonResponse({"status": "failed", "message": "Not enough seats available!"})
+
             # Update payment status
-            payment = Payment.objects.get(razorpay_order_id=params_dict["razorpay_order_id"])
             payment.razorpay_payment_id = params_dict["razorpay_payment_id"]
             payment.razorpay_signature = params_dict["razorpay_signature"]
             payment.status = "completed"
             payment.save()
 
-            return render(request, "payment_success.html", {"payment": payment})
+            # 🔹 Update seat_booked count in the Event model
+            event.seat_booked += payment.quantity
+            event.save()
+
+            # Create ticket after successful payment
+            try:
+                ticket = Ticket.objects.create(
+                    user=payment.user,
+                    event=event,
+                    quantity=payment.quantity,
+                    booking_date=timezone.now(),
+                    status="booked"
+                )
+            except Exception as e:
+                return JsonResponse({"status": "failed", "message": f"Ticket creation failed: {str(e)}"})
+
+            # Redirect to success page
+            redirect_url = reverse('core:payment_success_page', kwargs={'ticket_id': ticket.id})
+            return JsonResponse({"status": "success", "redirect_url": redirect_url, "ticket_id": ticket.id})
+
         except razorpay.errors.SignatureVerificationError:
-            return render(request, "payment_failed.html", {"error": "Signature verification failed"})
-        except Payment.DoesNotExist:
-            return render(request, "payment_failed.html", {"error": "Payment record not found"})
+            return JsonResponse({"status": "failed", "message": "Signature verification failed!"})
         except Exception as e:
-            return render(request, "payment_failed.html", {"error": str(e)})
+            return JsonResponse({"status": "failed", "message": str(e)})
 
     return JsonResponse({"error": "Invalid request"}, status=400)
+
+
+
+def payment_success_page(request, ticket_id):
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+    return render(request, "payment_success_page.html", {"ticket": ticket})
+

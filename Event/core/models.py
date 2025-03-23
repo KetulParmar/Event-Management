@@ -31,6 +31,7 @@ class Event(models.Model):
     contact_number = models.CharField(max_length=15)
     social_media = models.URLField(blank=True, null=True)
     max_attendees = models.PositiveIntegerField()
+    seat_booked = models.PositiveIntegerField(default=0)
     price = models.DecimalField(max_digits=10, decimal_places=2)
 
     # Uploading files to Cloudinary
@@ -57,7 +58,7 @@ class Ticket(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='booked')
 
     def __str__(self):
-        return f"{self.user.username} - {self.event.title} ({self.quantity})"  # Use username instead of Name
+        return f"{self.user.username} - {self.event.title} ({self.quantity} tickets)"
 
 
 class Payment(models.Model):
@@ -70,6 +71,7 @@ class Payment(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="payments")
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="payments")
     amount = models.DecimalField(max_digits=10, decimal_places=2)
+    quantity = models.PositiveIntegerField(default=1)  # 🔹 Added field to store ticket quantity
     razorpay_order_id = models.CharField(max_length=255, unique=True)
     razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
     razorpay_signature = models.CharField(max_length=255, blank=True, null=True)
@@ -77,4 +79,4 @@ class Payment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.username} - {self.event.title} - {self.status}"  # Use username instead of Name
+        return f"{self.user.username} - {self.event.title} - {self.status} ({self.quantity} tickets)"

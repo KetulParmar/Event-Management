@@ -149,8 +149,10 @@ CLOUDINARY_STORAGE = {
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 #razorpay_integration
-RAZORPAY_KEY_ID = "rzp_test_BGAtdn9itwDCse"
-RAZORPAY_SECRET_KEY = "AYZJSM8iDneOC7m66CfOyLFF"
 
+import os
+
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "rzp_test_BGAtdn9itwDCse")  # Default to test key
+RAZORPAY_SECRET_KEY = os.getenv("RAZORPAY_SECRET_KEY", "AYZJSM8iDneOC7m66CfOyLFF")
 
 AUTH_USER_MODEL = 'accounts.user_Data'
