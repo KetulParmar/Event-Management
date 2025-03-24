@@ -101,11 +101,12 @@ def delete(request, id):
 def details(request, id):
     event = get_object_or_404(Event, id=id)
     seat = event.max_attendees - event.seat_booked
-
+    print(request.user, "2")
     return render(request, 'details.html', {"event": event, "seat":seat})
 
 def ticket1(request, id):
     event = get_object_or_404(Event, id=id)
+
     return render(request,'Ticket.html', {"event": event})
 
 
@@ -225,3 +226,42 @@ def payment_success_page(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id)
     return render(request, "payment_success_page.html", {"ticket": ticket})
 
+
+def dashboard(request):
+    return render(request, "dashboard.html")
+
+
+from django.db.models import Sum
+
+
+@login_required
+def organizer_dashboard(request):
+    """user = request.user  # Get logged-in user
+    my_events = Event.objects.filter(organizer=user)
+
+    total_organized_events = my_events.count()
+    tickets_sold = Ticket.objects.filter(event__organizer=user).count()
+    total_revenue = Payment.objects.filter(event__organizer=user, status="completed").aggregate(total=Sum("amount"))["total"] or 0
+    upcoming_events = my_events.filter(start_date__gte=timezone.now()).count()
+
+    # Prepare event data for table
+    event_data = []
+    for event in my_events:
+        total_tickets = Ticket.objects.filter(event=event).count()
+        revenue = Payment.objects.filter(event=event, status="completed").aggregate(total=Sum("amount"))["total"] or 0
+        event_data.append({
+            "title": event.title,
+            "start_date": event.start_date,
+            "total_tickets": total_tickets,
+            "revenue": revenue
+        })
+
+    context = {
+        "total_organized_events": total_organized_events,
+        "tickets_sold": tickets_sold,
+        "total_revenue": total_revenue,
+        "upcoming_events": upcoming_events,
+        "my_events": event_data,
+    }
+"""
+    return render(request, "organizer_dashboard.html")

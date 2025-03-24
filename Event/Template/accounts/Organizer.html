@@ -59,7 +59,7 @@
             <h2>Welcome {{Name}}</h2>
             <h1>Organize Your Event</h1>
             <p>..</p>
-            <a class="btn btn-white" data-scroll href="Register">Register Now</a>
+            <a class="btn btn-white" data-scroll href="{% url 'core:organizer_dashboard' %}">Dashboard</a>
             <a class="btn btn-white" data-scroll href="{% url 'core:Home' %}">Organize Event</a>
         </div>
     </header>

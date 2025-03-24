@@ -123,4 +123,5 @@ def logout_view(request):
 
 @login_required
 def details(request):
+    print(request.user, "1")
     return render(request, 'core/details.html')

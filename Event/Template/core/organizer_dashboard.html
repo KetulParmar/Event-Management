@@ -1,0 +1,177 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organizer Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            height: 100vh;
+            padding: 20px;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar ul li {
+            margin: 20px 0;
+        }
+
+        .sidebar ul li a {
+            text-decoration: none;
+            color: white;
+            font-size: 18px;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            background: #f4f4f4;
+        }
+
+        header {
+            background: #34495e;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .cards {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            width: 200px;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        th {
+            background: #2c3e50;
+            color: white;
+        }
+
+        .charts {
+            margin-top: 30px;
+        }
+        </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Organizer Dashboard</h2>
+        <ul>
+            <li><a href="#">My Events</a></li>
+            <li><a href="#">Ticket Sales</a></li>
+            <li><a href="#">Revenue</a></li>
+            <li><a href="#">Settings</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <header>
+            <h1>Welcome, {{ user.username }}</h1>
+        </header>
+
+        <div class="cards">
+            <div class="card">
+                <h3>Events Organized</h3>
+                <p>{{ total_organized_events }}</p>
+            </div>
+            <div class="card">
+                <h3>Tickets Sold</h3>
+                <p>{{ tickets_sold }}</p>
+            </div>
+            <div class="card">
+                <h3>Total Revenue</h3>
+                <p>${{ total_revenue }}</p>
+            </div>
+            <div class="card">
+                <h3>Upcoming Events</h3>
+                <p>{{ upcoming_events }}</p>
+            </div>
+        </div>
+
+        <h2>My Events</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Event</th>
+                    <th>Date</th>
+                    <th>Tickets Sold</th>
+                    <th>Revenue</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in my_events %}
+                <tr>
+                    <td>{{ event.title }}</td>
+                    <td>{{ event.start_date }}</td>
+                    <td>{{ event.total_tickets }}</td>
+                    <td>${{ event.revenue }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="charts">
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+        let ctx = document.getElementById("revenueChart").getContext("2d");
+
+        let revenueChart = new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+                datasets: [{
+                    label: "Monthly Revenue",
+                    data: [1200, 1500, 1800, 2200, 3000, 4000],
+                    backgroundColor: "rgba(52, 152, 219, 0.2)",
+                    borderColor: "#3498db",
+                    borderWidth: 2
+                }]
+            }
+        });
+    });
+    </script>
+</body>
+</html>
