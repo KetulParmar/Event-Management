@@ -111,19 +111,19 @@
         <div class="cards">
             <div class="card">
                 <h3>Events Organized</h3>
-                <p>{{ total_organized_events }}</p>
+                <p>{{total_organized_events}}</p>
             </div>
             <div class="card">
                 <h3>Tickets Sold</h3>
-                <p>{{ tickets_sold }}</p>
+                <p>{{tickets_sold}}</p>
             </div>
             <div class="card">
                 <h3>Total Revenue</h3>
-                <p>${{ total_revenue }}</p>
+                <p>{{total_revenue}}</p>
             </div>
             <div class="card">
                 <h3>Upcoming Events</h3>
-                <p>{{ upcoming_events }}</p>
+                <p>-</p>
             </div>
         </div>
 
@@ -149,9 +149,7 @@
             </tbody>
         </table>
 
-        <div class="charts">
-            <canvas id="revenueChart"></canvas>
-        </div>
+
     </div>
 
     <script>

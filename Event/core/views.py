@@ -1,6 +1,5 @@
 import razorpay
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages
 from accounts.models import user_Data
 import json
@@ -10,6 +9,10 @@ from .models import *
 from razorpay.errors import BadRequestError
 from core.models import Ticket
 from django.urls import reverse
+from django.contrib.auth.decorators import login_required
+from django.db.models import Sum, Q
+from django.utils import timezone
+from django.shortcuts import render
 
 
 def home1(request):
@@ -123,12 +126,12 @@ def create_order(request, event_id):
                 return JsonResponse({"error": "Invalid quantity"}, status=400)
 
             event = get_object_or_404(Event, id=event_id)
-            user = request.user  # Ensure user is authenticated
+            user = request.user
 
             if not user.is_authenticated:
                 return JsonResponse({"error": "User not authenticated"}, status=401)
 
-            # 🔹 Check if enough seats are available
+
             if event.seat_booked + quantity > event.max_attendees:
                 return JsonResponse({"error": "Not enough seats available"}, status=400)
 
@@ -230,25 +233,44 @@ def payment_success_page(request, ticket_id):
 def dashboard(request):
     return render(request, "dashboard.html")
 
-
-from django.db.models import Sum
-
-
 @login_required
 def organizer_dashboard(request):
-    """user = request.user  # Get logged-in user
+    user = request.user  # Currently logged-in organizer
+
+    # Fetch all events organized by the user
     my_events = Event.objects.filter(organizer=user)
 
+    # Count of events organized
     total_organized_events = my_events.count()
-    tickets_sold = Ticket.objects.filter(event__organizer=user).count()
-    total_revenue = Payment.objects.filter(event__organizer=user, status="completed").aggregate(total=Sum("amount"))["total"] or 0
-    upcoming_events = my_events.filter(start_date__gte=timezone.now()).count()
 
-    # Prepare event data for table
+    # Total tickets sold (booked or used) for organizer's events
+    tickets_sold = Ticket.objects.filter(
+        event__organizer=user,
+        status__in=['booked', 'used']
+    ).aggregate(total=Sum('quantity'))['total'] or 0
+
+    # Total revenue from completed payments
+    total_revenue = Payment.objects.filter(
+        event__organizer=user,
+        status="completed"
+    ).aggregate(total=Sum("amount"))["total"] or 0
+
+    # Count of upcoming events
+    upcoming_events = my_events.filter(start_date__gte=timezone.now().date()).count()
+
+    # Detailed data per event
     event_data = []
     for event in my_events:
-        total_tickets = Ticket.objects.filter(event=event).count()
-        revenue = Payment.objects.filter(event=event, status="completed").aggregate(total=Sum("amount"))["total"] or 0
+        total_tickets = Ticket.objects.filter(
+            event=event,
+            status__in=['booked', 'used']
+        ).aggregate(total=Sum('quantity'))['total'] or 0
+
+        revenue = Payment.objects.filter(
+            event=event,
+            status="completed"
+        ).aggregate(total=Sum("amount"))["total"] or 0
+
         event_data.append({
             "title": event.title,
             "start_date": event.start_date,
@@ -263,5 +285,6 @@ def organizer_dashboard(request):
         "upcoming_events": upcoming_events,
         "my_events": event_data,
     }
-"""
-    return render(request, "organizer_dashboard.html")
+
+    return render(request, "organizer_dashboard.html", context)
+
