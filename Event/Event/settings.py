@@ -156,3 +156,14 @@ RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "rzp_test_BGAtdn9itwDCse")  # Def
 RAZORPAY_SECRET_KEY = os.getenv("RAZORPAY_SECRET_KEY", "AYZJSM8iDneOC7m66CfOyLFF")
 
 AUTH_USER_MODEL = 'accounts.user_Data'
+
+
+#Email sending configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST_USER = 'ketul4947@gmail.com'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_PASSWORD = 'plng kcuo eyli hjjh'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USER_SSL = False
+fail_silently = False

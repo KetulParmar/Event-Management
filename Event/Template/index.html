@@ -104,22 +104,30 @@
                     <h3 class="section-title">Event Schedule</h3>
                 </div>
             </div>
-            <div class="row">
-                {%  for i in Data %}
-                <a href="{% url 'core:details' i.id %}">
-                <div class="col-md-4 col-sm-6">
-                    <div class="schedule-box">
-                        <div class="time">
-                            <time>{{i.start_date}}</time> - <time>{{i.end_date}}</time>
+             <div class="row">
+                {% if Data %}
+                    {% for i in Data %}
+                        <div class="col-md-4 col-sm-6">
+                            <a href="{% url 'core:details' i.id %}">
+                                <div class="schedule-box">
+                                    <div class="time">
+                                        <time>{{ i.start_date }}</time> - <time>{{ i.end_date }}</time>
+                                    </div>
+                                    <h3>{{ i.title }}</h3>
+                                    <p>{{ i.venue }}</p>
+                                    <p>{{ i.venue_address }}</p>
+                                </div>
+                            </a>
                         </div>
-                        <h3>{{i.title}}</h3>
-                        <p>{{i.venue}}</p>
-                        <p>{{i.venue_address}}</p>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-md-4 col-sm-6">
+                         <div class="schedule-box">
+                                <h4>No Event Scheduled</h4>
+                         </div>
                     </div>
-                </div>
-                </a>
-                {% endfor %}
-            </div>
+                {% endif %}
+             </div>
         </div>
     </section>
 

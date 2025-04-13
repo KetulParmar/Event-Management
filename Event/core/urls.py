@@ -14,7 +14,6 @@ urlpatterns = [
     path("create_order/<int:event_id>/", create_order, name="create_order"),
     path("payment_success_page/<int:ticket_id>/", views.payment_success_page, name='payment_success_page'),
     path("payment_success/", views.payment_success, name="payment_success"),
-    path("dashboard",views.dashboard, name='dashboard'),
     path('organizer_dashboard', views.organizer_dashboard, name='organizer_dashboard'),
 
 ]

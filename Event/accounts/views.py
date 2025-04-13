@@ -5,9 +5,19 @@ from accounts.models import user_Data
 from django.contrib.auth.decorators import login_required
 
 # Home Page
+from django.utils import timezone
+from django.db.models import Q
 def home(request):
-    D = Event.objects.all()
-    return render(request, 'index.html', {'Data':D})
+    today = timezone.now().date()
+    # Fetch events that are either:
+    # - currently happening (start_date <= today <= end_date)
+    # - or will happen in the future (start_date > today)
+    upcoming_events = Event.objects.filter(
+        Q(start_date__gte=today) | Q(start_date__lte=today, end_date__gte=today)
+    ).order_by('start_date')
+    print(upcoming_events)
+    return render(request, 'index.html', {'Data': upcoming_events})
+
 
 
 # Login View
@@ -108,14 +118,17 @@ def register(request):
 # Organizer Dashboard View
 def organizer(request):
     name= request.user.Name
-
     return render(request, 'accounts/Organizer.html', {'Name':name})
 
 # Attendee Dashboard View
 def attendee(request):
-    Data = Event.objects.all()
-    name= request.user.Name
-    return render(request, 'accounts/Attendee.html',{'Data':Data, 'Name':name})
+    today = timezone.now().date()
+    # Get ongoing or upcoming events
+    upcoming_events = Event.objects.filter(
+        Q(start_date__gte=today) | Q(start_date__lte=today, end_date__gte=today)
+    ).order_by('start_date')
+    name = request.user.Name
+    return render(request, 'accounts/Attendee.html', {'Data': upcoming_events, 'Name': name})
 
 def logout_view(request):
     logout(request)

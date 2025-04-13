@@ -14,6 +14,32 @@ from django.db.models import Sum, Q
 from django.utils import timezone
 from django.shortcuts import render
 
+#Email sending
+from django.core.mail import send_mail
+from django.conf import settings
+
+def send_ticket_email(user, ticket, event):
+    subject = f"🎟️ Ticket Confirmation - {event.title}"
+    message = f"""
+Hi {user.first_name},
+
+Thank you for booking a ticket for {event.title}!
+
+📅 Date: {event.start_date} to {event.end_date}
+📍 Venue: {event.venue}
+🎫 Quantity: {ticket.quantity}
+📅 Booked On: {ticket.booking_date.strftime('%Y-%m-%d %H:%M')}
+💳 Amount Paid: ₹{event.price * ticket.quantity}
+
+Your ticket has been confirmed. Please show this email at the entry gate.
+
+Thanks,
+Event Management Team
+"""
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
+
+
+
 
 def home1(request):
     user_id = request.session.get('user_id')
@@ -113,40 +139,66 @@ def ticket1(request, id):
     return render(request,'Ticket.html', {"event": event})
 
 
-# Initialize Razorpay client
-client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET_KEY))
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from django.conf import settings
+import razorpay
+from .models import Event, Payment
+
+# ✅ Razorpay client initializer
+def get_razorpay_client():
+    return razorpay.Client(auth=(
+        settings.RAZORPAY_KEY_ID or "rzp_test_BGAtdn9itwDCse",
+        settings.RAZORPAY_SECRET_KEY or "AYZJSM8iDneOC7m66CfOyLFF"
+    ))
 
 @csrf_exempt
 def create_order(request, event_id):
     if request.method == "POST":
         try:
+            print("✅ Step 1: Parsing request data")
             data = json.loads(request.body)
             quantity = int(data.get("quantity", 1))
             if quantity <= 0:
                 return JsonResponse({"error": "Invalid quantity"}, status=400)
 
+            print("✅ Step 2: Fetching event and user")
             event = get_object_or_404(Event, id=event_id)
             user = request.user
 
             if not user.is_authenticated:
                 return JsonResponse({"error": "User not authenticated"}, status=401)
 
-
+            print("✅ Step 3: Seat availability check")
             if event.seat_booked + quantity > event.max_attendees:
                 return JsonResponse({"error": "Not enough seats available"}, status=400)
 
-            total_amount = int(event.price * quantity * 100)  # Convert to paise
+            total_amount = int(event.price * quantity * 100)  # in paise
+            print("✅ Step 4: Total amount calculated:", total_amount)
 
-            # Create Razorpay order
+            print("✅ Step 5: Initializing Razorpay client")
+            client = get_razorpay_client()
+
+            print("🔐 Using Razorpay Keys -> KEY_ID:", settings.RAZORPAY_KEY_ID, "SECRET:", settings.RAZORPAY_SECRET_KEY)
+
             order_data = {
                 "amount": total_amount,
                 "currency": "INR",
                 "payment_capture": "1"
             }
 
-            order = client.order.create(order_data)
+            print("✅ Step 6: Creating Razorpay order")
+            try:
+                order = client.order.create(order_data)
+                print("✅ Razorpay order created:", order)
+            except Exception as e:
+                print("❌ Razorpay order creation failed:", str(e))
+                return JsonResponse({"error": "Razorpay order creation failed", "details": str(e)}, status=500)
 
-            # Save order details in Payment model
+            print("✅ Step 7: Saving Payment record")
             payment = Payment.objects.create(
                 user=user,
                 event=event,
@@ -156,20 +208,26 @@ def create_order(request, event_id):
                 status="pending"
             )
 
+            print("✅ Step 8: Returning JSON response to frontend")
             return JsonResponse({
                 "order_id": order["id"],
                 "amount": total_amount,
                 "currency": "INR",
                 "status": "created"
             })
+
         except Exception as e:
+            print("❌ Unexpected error:", str(e))
             return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
 
 @csrf_exempt
 def payment_success(request):
     if request.method == "POST":
         data = json.loads(request.body)
-
+        client = get_razorpay_client()
         try:
             params_dict = {
                 'razorpay_order_id': data.get("razorpay_order_id"),
@@ -209,6 +267,8 @@ def payment_success(request):
                     booking_date=timezone.now(),
                     status="booked"
                 )
+
+                send_ticket_email(payment.user, ticket, event)
             except Exception as e:
                 return JsonResponse({"status": "failed", "message": f"Ticket creation failed: {str(e)}"})
 
@@ -228,10 +288,6 @@ def payment_success(request):
 def payment_success_page(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id)
     return render(request, "payment_success_page.html", {"ticket": ticket})
-
-
-def dashboard(request):
-    return render(request, "dashboard.html")
 
 @login_required
 def organizer_dashboard(request):
