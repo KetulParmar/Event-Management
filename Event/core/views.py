@@ -1,22 +1,22 @@
-import razorpay
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages
 from accounts.models import user_Data
-import json
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from .models import *
 from razorpay.errors import BadRequestError
 from core.models import Ticket
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Q
-from django.utils import timezone
 from django.shortcuts import render
-
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
+from django.conf import settings
+import razorpay
+from .models import Event, Payment
 #Email sending
 from django.core.mail import send_mail
-from django.conf import settings
 
 def send_ticket_email(user, ticket, event):
     subject = f"🎟️ Ticket Confirmation - {event.title}"
@@ -135,18 +135,11 @@ def details(request, id):
 
 def ticket1(request, id):
     event = get_object_or_404(Event, id=id)
+    razorpay_key = settings.RAZORPAY_KEY_ID
+    print(razorpay_key)
+    return render(request,'Ticket.html', {"event": event, 'razorpay_key': razorpay_key})
 
-    return render(request,'Ticket.html', {"event": event})
 
-
-import json
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import get_object_or_404
-from django.utils import timezone
-from django.conf import settings
-import razorpay
-from .models import Event, Payment
 
 # ✅ Razorpay client initializer
 def get_razorpay_client():
