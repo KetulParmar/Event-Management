@@ -21,7 +21,7 @@ from django.core.mail import send_mail
 def send_ticket_email(user, ticket, event):
     subject = f"🎟️ Ticket Confirmation - {event.title}"
     message = f"""
-Hi {user.first_name},
+Hi {user.Name},
 
 Thank you for booking a ticket for {event.title}!
 
@@ -36,7 +36,7 @@ Your ticket has been confirmed. Please show this email at the entry gate.
 Thanks,
 Event Management Team
 """
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.Email])
 
 
 
@@ -227,32 +227,33 @@ def payment_success(request):
                 'razorpay_payment_id': data.get("razorpay_payment_id"),
                 'razorpay_signature': data.get("razorpay_signature")
             }
-
+            print("1")
             client.utility.verify_payment_signature(params_dict)
-
+            print("2")
             # Fetch payment record
             try:
                 payment = Payment.objects.get(razorpay_order_id=params_dict["razorpay_order_id"])
             except Payment.DoesNotExist:
                 return JsonResponse({"status": "failed", "message": "Payment record not found!"})
-
+            print("3")
             # 🔹 Check if enough seats are available before finalizing payment
             event = payment.event
             if event.seat_booked + payment.quantity > event.max_attendees:
                 return JsonResponse({"status": "failed", "message": "Not enough seats available!"})
-
+            print("4")
             # Update payment status
             payment.razorpay_payment_id = params_dict["razorpay_payment_id"]
             payment.razorpay_signature = params_dict["razorpay_signature"]
             payment.status = "completed"
             payment.save()
-
+            print("5")
             # 🔹 Update seat_booked count in the Event model
             event.seat_booked += payment.quantity
             event.save()
-
+            print("6")
             # Create ticket after successful payment
             try:
+                print("7")
                 ticket = Ticket.objects.create(
                     user=payment.user,
                     event=event,
@@ -260,18 +261,22 @@ def payment_success(request):
                     booking_date=timezone.now(),
                     status="booked"
                 )
-
+                print("8")
                 send_ticket_email(payment.user, ticket, event)
+                print("9")
             except Exception as e:
+                print(e)
                 return JsonResponse({"status": "failed", "message": f"Ticket creation failed: {str(e)}"})
-
+            print("10")
             # Redirect to success page
             redirect_url = reverse('core:payment_success_page', kwargs={'ticket_id': ticket.id})
             return JsonResponse({"status": "success", "redirect_url": redirect_url, "ticket_id": ticket.id})
 
         except razorpay.errors.SignatureVerificationError:
+            print("11")
             return JsonResponse({"status": "failed", "message": "Signature verification failed!"})
         except Exception as e:
+            print("12")
             return JsonResponse({"status": "failed", "message": str(e)})
 
     return JsonResponse({"error": "Invalid request"}, status=400)
