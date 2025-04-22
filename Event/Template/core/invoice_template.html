@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <title>Event Ticket Invoice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .invoice-box {
+            width: 700px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            position: relative;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+        .invoice-box::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("{% static 'images/backgrounds/inv.png' %}") no-repeat center center;
+            background-size: contain;
+            opacity: 0.05; /* Light watermark style */
+            z-index: 0;
+        }
+        .invoice-box * {
+            position: relative;
+            z-index: 1;
+        }
+        .header, .footer {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .header h2 {
+            margin: 0;
+            font-size: 22px;
+            color: #1a237e;
+        }
+        .info, .details {
+            margin-bottom: 15px;
+        }
+        .info p, .details p {
+            margin: 4px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #bbb;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #1a237e;
+            color: white;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .footer {
+            font-size: 11px;
+            color: #666;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-box">
+        <div class="header">
+            <h2>Event Ticket Invoice</h2>
+            <small>{{ date }}</small>
+        </div>
+
+        <div class="info">
+            <p><strong>Invoice ID:</strong> INV-{{ transaction_id }}</p>
+            <p><strong>Status:</strong> Paid</p>
+        </div>
+
+        <div class="details">
+            <p><strong>Attendee:</strong> {{ name }} | {{ email }}</p>
+            <p><strong>Event:</strong> {{ event }} | {{ start_date }} to {{ end_date }} | {{ start_time }} - {{ end_time }}</p>
+            <p><strong>Venue:</strong> {{ venue }}</p>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ event }} - Entry Ticket</td>
+                    <td>{{ quantity }}</td>
+                    <td>{{ price }}</td>
+                    <td>{{ amount }}</td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="text-right"><strong>Sub Total</strong></td>
+                    <td>{{ amount }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="footer">
+            Thank you for booking with EventHere.<br>
+            This ticket is non-refundable. Contact ketul4947@gmail.com for help.
+        </div>
+    </div>
+</body>
+</html>
