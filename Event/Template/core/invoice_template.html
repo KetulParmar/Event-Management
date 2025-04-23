@@ -6,21 +6,23 @@
     <title>Event Ticket Invoice</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            font-size: 13px;
+            font-family: 'Arial', sans-serif;
+            font-size: 14px;
             margin: 0;
             padding: 20px;
             color: #333;
+            background-color: #f4f4f4;
         }
         .invoice-box {
             width: 700px;
             margin: auto;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
+            padding: 30px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             position: relative;
-            background-size: contain;
-            background-repeat: no-repeat;
+            overflow: hidden;
         }
         .invoice-box::before {
             content: "";
@@ -40,41 +42,56 @@
         }
         .header, .footer {
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         .header h2 {
             margin: 0;
-            font-size: 22px;
+            font-size: 24px;
             color: #1a237e;
         }
         .info, .details {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            background-color: #f9f9f9;
         }
         .info p, .details p {
-            margin: 4px 0;
+            margin: 5px 0;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-top: 15px;
         }
         th, td {
-            border: 1px solid #bbb;
-            padding: 8px;
+            border: 1px solid #ddd;
+            padding: 10px;
             text-align: left;
         }
         th {
             background-color: #1a237e;
             color: white;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
         }
         .text-right {
             text-align: right;
         }
         .footer {
-            font-size: 11px;
+            font-size: 12px;
             color: #666;
-            border-top: 1px solid #ccc;
-            padding-top: 10px;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 15px;
+        }
+        .footer a {
+            color: #1a237e;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -120,9 +137,8 @@
         </table>
 
         <div class="footer">
-            Thank you for booking with EventHere.<br>
-            This ticket is non-refundable. Contact ketul4947@gmail.com for help.
+            Thank you for booking with <strong>EventHere</strong>.<br>
+            This ticket is non-refundable. Contact <a href="mailto:ketul4947@gmail.com">ketul4947@gmail.com</a> for help.
         </div>
     </div>
 </body>
-</html>
