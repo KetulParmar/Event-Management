@@ -99,14 +99,16 @@
                 </div>
                 <button type="submit"  class="btn btn-warning w-100">Log In</button>
                 {% if err %}
-                    {{err}}
+                    <p style="color: red;">{{ err }}</p>
                 {% endif %}
+
             </form>
 
             <hr class="my-4 text-light">
 
             <div class="text-center mt-3">
-                <a href="{% url 'accounts:Register' %}"  class="text-warning">Register Here</a>
+                <a href="{% url 'accounts:Register' %}"  class="text-warning">Register Here</a><br>
+                <a href="{% url 'accounts:Forget' %}"  class="text-warning">Forget Password?</a>
             </div>
         </div>
     </div>

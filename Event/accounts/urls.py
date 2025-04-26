@@ -8,5 +8,6 @@ urlpatterns = [
     path('Organizer',views.organizer, name='Organizer'),
     path('Attendee',views.attendee, name='Attendee'),
     path('logout/', views.logout_view, name='logout'),
-    #path('otp', views.otp_verification, name='otp'),
+    path('Forget/', views.forget, name='Forget'),
+
 ]

@@ -1,8 +1,17 @@
 from core.models import Event
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import logout
+from django.http import JsonResponse
+
 from .models import *
 from accounts.models import user_Data
 from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
+from django.conf import settings
+import random
+from django.contrib.auth import authenticate, login
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.views.decorators.csrf import csrf_protect
 
 # Home Page
 from django.utils import timezone
@@ -21,11 +30,6 @@ def home(request):
 
 
 # Login View
-from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect
-from django.urls import reverse
-from django.views.decorators.csrf import csrf_protect
-
 
 @csrf_protect
 def login_view(request):
@@ -130,11 +134,113 @@ def attendee(request):
     name = request.user.Name
     return render(request, 'accounts/Attendee.html', {'Data': upcoming_events, 'Name': name})
 
+
 def logout_view(request):
     logout(request)
     return redirect(reverse('accounts:home'))
+
 
 @login_required
 def details(request):
     print(request.user, "1")
     return render(request, 'core/details.html')
+
+
+
+@csrf_protect
+def forget(request):
+    # 1. OTP Sending
+    if request.method == 'POST' and request.POST.get('action') == 'send_otp':
+        email = request.POST.get('Email', '').strip()
+        try:
+            user = user_Data.objects.get(Email=email)
+            otp = random.randint(1000, 9999)
+
+            # Store in session
+            request.session['reset_otp'] = str(otp)
+            request.session['reset_user_id'] = user.id
+            request.session['reset_email'] = email
+            request.session['otp_sent'] = True  # flag to show OTP form
+
+            # Send OTP via email
+            send_mail(
+                'Forgot Password',
+                f'Your OTP is: {otp}',
+                settings.EMAIL_HOST_USER,
+                [email],
+                fail_silently=False,
+            )
+
+            request.session['otp_sent_message'] = "OTP sent successfully"
+            return render(request, 'Forget.html', {'otp_sent': True, 'email': email})
+
+        except user_Data.DoesNotExist:
+            return render(request, 'Forget.html', {'error': 'Email not registered!'})
+
+    # 2. OTP Verification
+    elif request.method == 'POST' and request.POST.get('action') == 'verify_otp':
+        input_otp = request.POST.get('otp')
+        session_otp = request.session.get('reset_otp')
+        email = request.session.get('reset_email')
+
+        if input_otp == session_otp:
+            request.session['otp_verified'] = True
+            return render(request, 'Forget.html', {
+                'otp_sent': True,
+                'show_password_fields': True,
+                'email': email
+            })
+        else:
+            return render(request, 'Forget.html', {
+                'otp_sent': True,
+                'error': 'Invalid OTP!',
+                'email': email
+            })
+
+    # 3. Password Reset
+    elif request.method == 'POST' and request.POST.get('action') == 'reset_password':
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        email = request.session.get('reset_email')
+
+        if new_password != confirm_password:
+            return render(request, 'Forget.html', {
+                'otp_sent': True,
+                'show_password_fields': True,
+                'error': 'Passwords do not match!',
+                'email': email
+            })
+
+        try:
+            user = user_Data.objects.get(Email=email)
+            user.set_password(new_password)
+            user.save()
+
+            # Send confirmation email
+            send_mail(
+                'Password Reset Successful',
+                f'Hi {user.Name},\n\nYour password has been successfully changed. It is {new_password}',
+
+                settings.EMAIL_HOST_USER,
+                [email],
+                fail_silently=False,
+            )
+
+            # Clear session and redirect
+            request.session.flush()
+            return redirect('accounts:Login')
+
+        except user_Data.DoesNotExist:
+            return render(request, 'Forget.html', {'error': 'User not found!'})
+
+    # On GET or fallback
+    context = {}
+    if request.session.get('otp_sent'):
+        context['otp_sent'] = True
+        context['email'] = request.session.get('reset_email')
+    if request.session.get('otp_verified'):
+        context['show_password_fields'] = True
+    if 'otp_sent_message' in request.session:
+        context['otp_sent_message'] = request.session.pop('otp_sent_message')
+
+    return render(request, 'Forget.html', context)

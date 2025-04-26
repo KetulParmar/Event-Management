@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% load static %}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forgot Password</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    .bg-image {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+      opacity: 0.7;
+    }
+    .bg-image-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: -1;
+    }
+    .login-container {
+      max-width: 400px;
+      margin: auto;
+      margin-top: 10vh;
+      padding: 30px;
+      border-radius: 10px;
+      backdrop-filter: blur(10px);
+      background: rgba(0, 0, 0, 0.7);
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+      animation: fadeIn 1s ease-in-out;
+      color: white;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .login-container h3 {
+      text-align: center;
+      font-weight: bold;
+      color: #ffd700;
+    }
+    label, p, a {
+      color: #ddd;
+    }
+    button:hover {
+      transform: scale(1.05);
+      transition: 0.3s;
+    }
+  </style>
+</head>
+<body>
+  <img src="{% static '/images/backgrounds/header.jpg' %}" alt="Background Image" class="bg-image">
+  <div class="bg-image-overlay"></div>
+
+  <div class="container">
+    <div class="login-container">
+      <h3><i class="fas fa-unlock-alt"></i> Forgot Password</h3>
+      <p class="text-center mb-4">Enter your email to receive an OTP.</p>
+
+      {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+      {% endif %}
+
+      {% if request.session.otp_sent_message %}
+        <div class="alert alert-success">
+            {{ request.session.otp_sent_message }}
+        </div>
+      {% endif %}
+
+      <!-- Step 1: Email Input -->
+      <form method="POST" action="{% url 'accounts:Forget' %}">
+        {% csrf_token %}
+        <div id="identifierSection" class="mb-3">
+          <label for="identifier">Email</label>
+          <input type="text" class="form-control" name="Email" id="identifier" placeholder="Email" {% if otp_sent %} value="{{ email }}" {% endif %} required>
+          {% if not otp_sent %}
+            <button type="submit" class="btn btn-primary w-100 mt-3" name="action" value="send_otp">Send OTP</button>
+          {% endif %}
+        </div>
+      </form>
+
+      <!-- Step 2: OTP input (Only if OTP sent but not yet verified) -->
+      {% if otp_sent and not show_password_fields %}
+        <form method="POST" action="{% url 'accounts:Forget' %}">
+          {% csrf_token %}
+          <div id="otpSection" class="mb-3">
+            <label for="otp">Enter OTP</label>
+            <input type="text" class="form-control" name="otp" id="otp" placeholder="Enter OTP" required>
+            <button type="submit" class="btn btn-warning w-100 mt-3" name="action" value="verify_otp">Verify OTP</button>
+          </div>
+        </form>
+      {% endif %}
+
+      <!-- Step 3: New Password fields (Visible only after OTP is verified) -->
+      {% if show_password_fields %}
+        <form method="POST" action="{% url 'accounts:Forget' %}">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="reset_password">
+          <div id="passwordFields">
+            <div class="mb-3">
+              <label for="newPassword">New Password</label>
+              <input type="password" class="form-control" name="new_password" id="newPassword" placeholder="New Password" required>
+            </div>
+            <div class="mb-3">
+              <label for="confirmPassword">Confirm Password</label>
+              <input type="password" class="form-control" name="confirm_password" id="confirmPassword" placeholder="Confirm Password" required>
+            </div>
+            <button type="submit" class="btn btn-success w-100">Reset Password</button>
+          </div>
+        </form>
+      {% endif %}
+
+      <div class="text-center mt-3">
+        <a href="{% url 'accounts:Login' %}" class="text-warning">Back to Login</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
