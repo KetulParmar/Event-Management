@@ -1,7 +1,6 @@
 from core.models import Event
 from django.contrib.auth import logout
-from django.http import JsonResponse
-
+from .forms import Cap
 from .models import *
 from accounts.models import user_Data
 from django.contrib.auth.decorators import login_required
@@ -33,6 +32,7 @@ def home(request):
 
 @csrf_protect
 def login_view(request):
+    c1 = Cap(request.POST)
     if request.method == 'POST':
         login_type = request.POST.get('loginType')
         login_input = request.POST.get('loginInput')
@@ -52,8 +52,11 @@ def login_view(request):
             auth_user = authenticate(request, username=user.username, password=password)
 
             if auth_user:
-                login(request, auth_user)  # Log in user using Django's session system
-
+                if c1.is_valid():
+                    login(request, auth_user)  # Log in user using Django's session system
+                else:
+                    err = "Incorrect captcha!"
+                    return render(request, 'Login.html', context={'err': err})
                 # **Manually store the user_id in the session**
                 request.session['user_id'] = user.id
                 print("User ID stored in session:", request.session['user_id'])  # Debugging statement
@@ -69,7 +72,7 @@ def login_view(request):
         except user_Data.DoesNotExist:
             return render(request, 'Login.html', {'err': 'Account does not exist!'})
 
-    return render(request, 'Login.html')
+    return render(request, 'Login.html', {'c1': c1})
 
 
 # Register View

@@ -71,6 +71,31 @@
             transform: scale(1.05);
             transition: 0.3s;
         }
+        .captcha-container {
+            margin: 20px 0;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .captcha-container img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .captcha-container input {
+            width: 100%;
+            padding: 10px;
+            background-color: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
     </style>
 </head>
 <body>
@@ -96,6 +121,9 @@
                 <div class="mb-3">
                     <label for="password" class="form-label">Password</label>
                     <input type="password" class="form-control" id="password" name="password" placeholder="Enter Password" required>
+                </div>
+                <div class="captcha-container">
+                    {{ c1.cap }} <!-- This is where the CAPTCHA will be rendered -->
                 </div>
                 <button type="submit"  class="btn btn-warning w-100">Log In</button>
                 {% if err %}

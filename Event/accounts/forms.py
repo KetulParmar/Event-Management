@@ -1,7 +1,7 @@
-from django import forms
 from captcha.fields import CaptchaField
+from django.forms import Form
 
-class ContactForm(forms.Form):
-    email = forms.EmailField(label="Email", required=True)
-    mobile = forms.CharField(label="Mobile Number", max_length=10, required=True)
-    captcha = CaptchaField()
+class Cap(Form):
+	cap = CaptchaField()
+
+

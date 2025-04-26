@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'core',
     'accounts',
     'cloudinary',
+    'captcha',
 ]
 
 MIDDLEWARE = [
@@ -169,3 +170,4 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USER_SSL = False
 fail_silently = False
+
