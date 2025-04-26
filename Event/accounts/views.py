@@ -17,19 +17,14 @@ from django.utils import timezone
 from django.db.models import Q
 def home(request):
     today = timezone.now().date()
-    # Fetch events that are either:
-    # - currently happening (start_date <= today <= end_date)
-    # - or will happen in the future (start_date > today)
     upcoming_events = Event.objects.filter(
         Q(start_date__gte=today) | Q(start_date__lte=today, end_date__gte=today)
     ).order_by('start_date')
-    print(upcoming_events)
     return render(request, 'index.html', {'Data': upcoming_events})
 
 
 
 # Login View
-
 @csrf_protect
 def login_view(request):
     c1 = Cap(request.POST)
@@ -53,15 +48,13 @@ def login_view(request):
 
             if auth_user:
                 if c1.is_valid():
-                    login(request, auth_user)  # Log in user using Django's session system
+                    login(request, auth_user)
                 else:
                     err = "Incorrect captcha!"
                     return render(request, 'Login.html', context={'err': err})
-                # **Manually store the user_id in the session**
                 request.session['user_id'] = user.id
                 print("User ID stored in session:", request.session['user_id'])  # Debugging statement
 
-                # Redirect based on user type
                 if user.User_type.lower() == 'organizer':
                     return redirect(reverse('accounts:Organizer'))
                 elif user.User_type.lower() == 'attendee':
@@ -112,7 +105,7 @@ def register(request):
                 Company_Name=company_name,
                 Website=website
             )
-            user.set_password(password)  # Hash password before saving
+            user.set_password(password)
             user.save()
             return redirect('accounts:Login')
 
@@ -130,7 +123,6 @@ def organizer(request):
 # Attendee Dashboard View
 def attendee(request):
     today = timezone.now().date()
-    # Get ongoing or upcoming events
     upcoming_events = Event.objects.filter(
         Q(start_date__gte=today) | Q(start_date__lte=today, end_date__gte=today)
     ).order_by('start_date')
@@ -152,7 +144,7 @@ def details(request):
 
 @csrf_protect
 def forget(request):
-    # 1. OTP Sending
+    #OTP Sending
     if request.method == 'POST' and request.POST.get('action') == 'send_otp':
         email = request.POST.get('Email', '').strip()
         try:
@@ -165,7 +157,7 @@ def forget(request):
             request.session['reset_email'] = email
             request.session['otp_sent'] = True  # flag to show OTP form
 
-            # Send OTP via email
+
             send_mail(
                 'Forgot Password',
                 f'Your OTP is: {otp}',
@@ -180,7 +172,7 @@ def forget(request):
         except user_Data.DoesNotExist:
             return render(request, 'Forget.html', {'error': 'Email not registered!'})
 
-    # 2. OTP Verification
+    #OTP Verification
     elif request.method == 'POST' and request.POST.get('action') == 'verify_otp':
         input_otp = request.POST.get('otp')
         session_otp = request.session.get('reset_otp')
@@ -200,7 +192,7 @@ def forget(request):
                 'email': email
             })
 
-    # 3. Password Reset
+    #Password Reset
     elif request.method == 'POST' and request.POST.get('action') == 'reset_password':
         new_password = request.POST.get('new_password')
         confirm_password = request.POST.get('confirm_password')
@@ -222,14 +214,14 @@ def forget(request):
             # Send confirmation email
             send_mail(
                 'Password Reset Successful',
-                f'Hi {user.Name},\n\nYour password has been successfully changed. It is {new_password}',
+                f'Hi {user.Name},\n\nYour password has been successfully changed. It is {new_password}.'
+                        f'Do not share with any one',
 
                 settings.EMAIL_HOST_USER,
                 [email],
                 fail_silently=False,
             )
 
-            # Clear session and redirect
             request.session.flush()
             return redirect('accounts:Login')
 

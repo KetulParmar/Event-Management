@@ -1,11 +1,6 @@
-from io import BytesIO
-
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages
 from accounts.models import user_Data
-from django.template.loader import render_to_string
-from xhtml2pdf import pisa
-
 from .models import *
 from razorpay.errors import BadRequestError
 from core.models import Ticket
@@ -20,15 +15,12 @@ from django.utils import timezone
 from django.conf import settings
 import razorpay
 from .models import Event, Payment
-
+from .utils.pdf_generator import generate_invoice_pdf
+from django.core.mail import EmailMessage
 
 
 
 #Email sending
-from django.core.mail import send_mail
-from .utils.pdf_generator import generate_invoice_pdf
-from django.core.mail import EmailMessage
-
 def send_ticket_email(user, ticket, event):
     subject = f"🎟️ Ticket Confirmation - {event.title}"
     message = f"""
@@ -47,8 +39,6 @@ Your ticket has been confirmed. Please find your ticket invoice attached.
 Thanks,
 Event Management Team
 """
-    print("📧 Preparing to send email...")
-    # Context for PDF
     context = {
 
         "name": user.Name,
@@ -65,15 +55,10 @@ Event Management Team
         "end_time": event.end_time,
     }
 
-    print("📦 PDF Context:", context)
-    # Generate PDF
     pdf_file = generate_invoice_pdf(context)
     if not pdf_file:
-        print("❌ PDF not generated, skipping email.")
         return False
 
-
-    # Create the email with the PDF attachment
     email = EmailMessage(
         subject,
         message,
@@ -98,20 +83,17 @@ def home1(request):
         except user_Data.DoesNotExist:
             user = None
             events = []
-            print("User does not exist")
-
     else:
         user = None
         events = []
-        print("No user logged in")
-
     return render(request, 'home.html', {'events': events})
 
+
+#Event creation view
 def create_event(request):
     if request.method == "POST":
         organizer_username = request.POST.get("organizer", "").strip()
 
-        # Validate organizer exists
         try:
             organizer = user_Data.objects.get(username=organizer_username)
         except user_Data.DoesNotExist:
@@ -131,17 +113,13 @@ def create_event(request):
         social_media = request.POST.get("social_media", "").strip()
         max_attendees = request.POST.get("max_attendees", "").strip() or 0
         price = request.POST.get("price", "").strip() or 0.00
-
-        # Handle file uploads to Cloudinary
         event_pdf = request.FILES.get("event_pdf")
         event_image = request.FILES.get("event_image")
 
-        # Validate required fields
         if not title or not start_date or not end_date or not venue:
             messages.error(request, "Title, start date, end date, and venue are required.")
             return redirect("core:create_event")
 
-        # Create and save the event
         Event.objects.create(
             title=title,
             description=description,
@@ -165,12 +143,14 @@ def create_event(request):
 
     return render(request, "create_event.html")
 
+#Delete Event
 def delete(request, id):
     event = get_object_or_404(Event, id=id)
     event.delete()
     messages.success(request, "Event deleted successfully.")
     return redirect('core:Home')
 
+#Event details
 @login_required
 def details(request, id):
     event = get_object_or_404(Event, id=id)
@@ -178,12 +158,11 @@ def details(request, id):
     print(request.user, "2")
     return render(request, 'details.html', {"event": event, "seat":seat})
 
+#Ticket booking
 def ticket1(request, id):
     event = get_object_or_404(Event, id=id)
     razorpay_key = settings.RAZORPAY_KEY_ID
-    print(razorpay_key)
     return render(request,'Ticket.html', {"event": event, 'razorpay_key': razorpay_key})
-
 
 
 #Razorpay client initializer
@@ -192,6 +171,7 @@ def get_razorpay_client():
         settings.RAZORPAY_KEY_ID or "rzp_test_BGAtdn9itwDCse",
         settings.RAZORPAY_SECRET_KEY or "AYZJSM8iDneOC7m66CfOyLFF"
     ))
+
 
 @csrf_exempt
 def create_order(request, event_id):
@@ -211,7 +191,7 @@ def create_order(request, event_id):
             if event.seat_booked + quantity > event.max_attendees:
                 return JsonResponse({"error": "Not enough seats available"}, status=400)
 
-            total_amount = int(event.price * quantity * 100)  # in paise
+            total_amount = int(event.price * quantity * 100)
 
             client = get_razorpay_client()
 
@@ -244,7 +224,6 @@ def create_order(request, event_id):
             })
 
         except Exception as e:
-            print("❌ Unexpected error:", str(e))
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Invalid request"}, status=400)
@@ -264,30 +243,23 @@ def payment_success(request):
 
             client.utility.verify_payment_signature(params_dict)
 
-            # Fetch payment record
             try:
                 payment = Payment.objects.get(razorpay_order_id=params_dict["razorpay_order_id"])
             except Payment.DoesNotExist:
                 return JsonResponse({"status": "failed", "message": "Payment record not found!"})
 
-            # Check if enough seats are available before finalizing payment
             event = payment.event
             if event.seat_booked + payment.quantity > event.max_attendees:
                 return JsonResponse({"status": "failed", "message": "Not enough seats available!"})
 
-            # Update payment status
             payment.razorpay_payment_id = params_dict["razorpay_payment_id"]
             payment.razorpay_signature = params_dict["razorpay_signature"]
             payment.status = "completed"
             payment.save()
 
-
-            # Update seat_booked count in the Event model
             event.seat_booked += payment.quantity
             event.save()
 
-
-            # Create ticket after successful payment
             try:
                 ticket = Ticket.objects.create(
                     user=payment.user,
@@ -296,13 +268,10 @@ def payment_success(request):
                     booking_date=timezone.now(),
                     status="booked"
                 )
-                print("done1")
                 send_ticket_email(payment.user, ticket, event)
             except Exception as e:
-                print(e, "1")
                 return JsonResponse({"status": "failed", "message": f"Ticket creation failed: {str(e)}"})
 
-            # Redirect to success page
             redirect_url = reverse('core:payment_success_page', kwargs={'ticket_id': ticket.id})
             return JsonResponse({"status": "success", "redirect_url": redirect_url, "ticket_id": ticket.id})
 
@@ -319,32 +288,27 @@ def payment_success_page(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id)
     return render(request, "payment_success_page.html", {"ticket": ticket})
 
+
 @login_required
 def organizer_dashboard(request):
-    user = request.user  # Currently logged-in organizer
+    user = request.user
 
-    # Fetch all events organized by the user
     my_events = Event.objects.filter(organizer=user)
 
-    # Count of events organized
     total_organized_events = my_events.count()
 
-    # Total tickets sold (booked or used) for organizer's events
     tickets_sold = Ticket.objects.filter(
         event__organizer=user,
         status__in=['booked', 'used']
     ).aggregate(total=Sum('quantity'))['total'] or 0
 
-    # Total revenue from completed payments
     total_revenue = Payment.objects.filter(
         event__organizer=user,
         status="completed"
     ).aggregate(total=Sum("amount"))["total"] or 0
 
-    # Count of upcoming events
     upcoming_events = my_events.filter(start_date__gte=timezone.now().date()).count()
 
-    # Detailed data per event
     event_data = []
     for event in my_events:
         total_tickets = Ticket.objects.filter(
