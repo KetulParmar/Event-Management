@@ -46,6 +46,7 @@
                     <li><a data-scroll href="#schedule" style="color: #f74430; font-weight: bold;">Schedule</a></li>
                     <!-- <li><a data-scroll href="#">Sponsorship</a></li> -->
                     <li><a data-scroll href="#photos" style="color: #f74430; font-weight: bold;">Photos</a></li>
+                    <li><a href="{% url 'core:my_ticket' %}" style="color: #f74430; font-weight: bold;">My Tickets</a></li>
                      <!-- Logout Button (Triggers the Modal) -->
                     <li><a href="#" class="logout-btn" style="color: #f74430" data-toggle="modal" data-target="#logoutModal">Logout</a></li>
 
@@ -74,7 +75,7 @@
             {% if Data %}
                 {% for i in Data %}
                     <div class="col-md-4 col-sm-6">
-                        <a href="{% url 'core:details' i.id %}">
+                        <a href="{% url 'core:details' i.id %}" style="text-decoration: none;">
                             <div class="schedule-box">
                                 <div class="time">
                                     <time>{{ i.start_date }}</time> - <time>{{ i.end_date }}</time>
@@ -159,7 +160,7 @@
 
                     <h3 class="section-title">About Us</h3>
 
-                    <p>You've inspired new consumer, racked up click-thru's, blown-up brand enes. We can't give you back the weekends you worked, or erase the pain ebeing forced to make the logo bigger. But if you submit your best work we ajusts might be able to give the chance to show you best digital marketing.</p>
+                    <p>At Event Here, we turn ideas into unforgettable experiences. From small gatherings to grand celebrations, we manage every detail with creativity, passion, and precision. Our goal is simple — to make your event stress-free, memorable, and exactly how you imagine it.</p>
 
                     <figure>
                         <img alt="" class="img-responsive" src="{% static 'images/about-us.jpg' %}">

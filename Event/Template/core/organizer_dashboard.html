@@ -1,175 +1,252 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Organizer Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            display: flex;
-        }
+  {% load static %}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Organizer Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: url("{% static 'images/backgrounds/header.jpg' %}") no-repeat center center/cover;
+      color: #f0f0f0;
+    }
 
-        .sidebar {
-            width: 250px;
-            background: #2c3e50;
-            color: white;
-            height: 100vh;
-            padding: 20px;
-        }
+    .main-content {
+      padding: 30px;
+      background-color: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      min-height: 100vh;
+    }
 
-        .sidebar h2 {
-            text-align: center;
-        }
+    header {
+      background: rgba(0, 0, 0, 0.9);
+      color: #FFD700;
+      padding: 15px;
+      text-align: center;
+      border-radius: 8px;
+    }
 
-        .sidebar ul {
-            list-style: none;
-            padding: 0;
-        }
+    .cards {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 30px;
+      flex-wrap: wrap;
+    }
 
-        .sidebar ul li {
-            margin: 20px 0;
-        }
+    .card {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      text-align: center;
+      border-radius: 8px;
+      width: 220px;
+      margin: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      color: #fff;
+    }
 
-        .sidebar ul li a {
-            text-decoration: none;
-            color: white;
-            font-size: 18px;
-        }
+    .card h3 {
+      color: #FFD700;
+    }
 
-        .main-content {
-            flex: 1;
-            padding: 20px;
-            background: #f4f4f4;
-        }
+    table {
+      width: 100%;
+      margin-top: 30px;
+      border-collapse: collapse;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      overflow: hidden;
+      color: #fff;
+    }
 
-        header {
-            background: #34495e;
-            color: white;
-            padding: 10px;
-            text-align: center;
-        }
+    th, td {
+      padding: 10px;
+      border: 1px solid #666;
+      text-align: center;
+    }
 
-        .cards {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 20px;
-        }
+    th {
+      background: rgba(0, 0, 0, 0.6);
+      color: #FFD700;
+    }
 
-        .card {
-            background: white;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            width: 200px;
-        }
+    .charts {
+      margin-top: 40px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      justify-content: center;
+    }
 
-        table {
-            width: 100%;
-            margin-top: 20px;
-            border-collapse: collapse;
-            background: white;
-            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-        }
+    canvas {
+      background: rgba(20, 20, 20, 0.9);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 3px 3px 15px rgba(0,0,0,0.7);
+      max-width: 400px;
+      height: 260px !important;
+    }
 
-        th, td {
-            padding: 10px;
-            border: 1px solid #ddd;
-            text-align: center;
-        }
-
-        th {
-            background: #2c3e50;
-            color: white;
-        }
-
-        .charts {
-            margin-top: 30px;
-        }
-        </style>
+    .section-title {
+      margin-top: 50px;
+      font-size: 22px;
+      color: #FFD700;
+    }
+  </style>
 </head>
 <body>
-    <div class="sidebar">
-        <h2>Organizer Dashboard</h2>
-        <ul>
-            <li><a href="#">My Events</a></li>
-            <li><a href="#">Ticket Sales</a></li>
-            <li><a href="#">Revenue</a></li>
-            <li><a href="#">Settings</a></li>
-        </ul>
+  <div class="main-content">
+    <header>
+      <h1>Welcome, {{ user.username }}</h1>
+    </header>
+
+    <div class="cards">
+      <div class="card">
+        <h3>Events Organized</h3>
+        <p>{{ total_organized_events }}</p>
+      </div>
+      <div class="card">
+        <h3>Tickets Sold</h3>
+        <p>{{ tickets_sold }}</p>
+      </div>
+      <div class="card">
+        <h3>Total Revenue</h3>
+        <p>₹{{ total_revenue }}</p>
+      </div>
+      <div class="card">
+        <h3>Upcoming Events</h3>
+        <p>{{ upcoming_events }}</p>
+      </div>
     </div>
 
-    <div class="main-content">
-        <header>
-            <h1>Welcome, {{ user.username }}</h1>
-        </header>
-
-        <div class="cards">
-            <div class="card">
-                <h3>Events Organized</h3>
-                <p>{{total_organized_events}}</p>
-            </div>
-            <div class="card">
-                <h3>Tickets Sold</h3>
-                <p>{{tickets_sold}}</p>
-            </div>
-            <div class="card">
-                <h3>Total Revenue</h3>
-                <p>{{total_revenue}}</p>
-            </div>
-            <div class="card">
-                <h3>Upcoming Events</h3>
-                <p>-</p>
-            </div>
-        </div>
-
-        <h2>My Events</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Event</th>
-                    <th>Date</th>
-                    <th>Tickets Sold</th>
-                    <th>Revenue</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for event in my_events %}
-                <tr>
-                    <td>{{ event.title }}</td>
-                    <td>{{ event.start_date }}</td>
-                    <td>{{ event.total_tickets }}</td>
-                    <td>₹{{ event.revenue }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-
+    <div class="charts">
+      <canvas id="revenueChart"></canvas>
+      <canvas id="ticketChart"></canvas>
+      <canvas id="statusChart"></canvas>
     </div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-        let ctx = document.getElementById("revenueChart").getContext("2d");
+    <h2 class="section-title">My Events</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Event</th>
+          <th>Date</th>
+          <th>Tickets Sold</th>
+          <th>Revenue</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for event in my_events %}
+        <tr>
+          <td>{{ event.title }}</td>
+          <td>{{ event.start_date }}</td>
+          <td>{{ event.total_tickets }}</td>
+          <td>₹{{ event.revenue }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
 
-        let revenueChart = new Chart(ctx, {
-            type: "line",
-            data: {
-                labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-                datasets: [{
-                    label: "Monthly Revenue",
-                    data: [1200, 1500, 1800, 2200, 3000, 4000],
-                    backgroundColor: "rgba(52, 152, 219, 0.2)",
-                    borderColor: "#3498db",
-                    borderWidth: 2
-                }]
-            }
-        });
+    <h2 class="section-title">Recent Payments</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Event</th>
+          <th>Tickets</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for payment in recent_payments %}
+        <tr>
+          <td>{{ payment.user.Name }}</td>
+          <td>{{ payment.event.title }}</td>
+          <td>{{ payment.quantity }}</td>
+          <td>₹{{ payment.amount }}</td>
+          <td>{{ payment.status }}</td>
+          <td>{{ payment.created_at|date:"d M Y" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const revenueCtx = document.getElementById("revenueChart").getContext("2d");
+      new Chart(revenueCtx, {
+        type: "line",
+        data: {
+          labels: {{ revenue_months|safe }},
+          datasets: [{
+            label: "Monthly Revenue",
+            data: {{ revenue_values|safe }},
+            backgroundColor: "rgba(255, 215, 0, 0.15)",
+            borderColor: "#FFD700",
+            borderWidth: 2,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { labels: { color: "#FFD700" } }
+          },
+          scales: {
+            x: { ticks: { color: "#fff" } },
+            y: { ticks: { color: "#fff" } }
+          }
+        }
+      });
+
+      const ticketCtx = document.getElementById("ticketChart").getContext("2d");
+      new Chart(ticketCtx, {
+        type: "bar",
+        data: {
+          labels: {{ ticket_months|safe }},
+          datasets: [{
+            label: "Tickets Sold",
+            data: {{ ticket_counts|safe }},
+            backgroundColor: "rgba(100, 181, 246, 0.6)",
+            borderColor: "#2196f3",
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { labels: { color: "#FFD700" } }
+          },
+          scales: {
+            x: { ticks: { color: "#fff" } },
+            y: { ticks: { color: "#fff" } }
+          }
+        }
+      });
+
+      const statusCtx = document.getElementById("statusChart").getContext("2d");
+      new Chart(statusCtx, {
+        type: "pie",
+        data: {
+          labels: ["Booked", "Cancelled", "Used"],
+          datasets: [{
+            data: {{ ticket_status_counts|safe }},
+            backgroundColor: ["#2980b9", "#c0392b", "#f39c12"]
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { labels: { color: "#fff" } }
+          }
+        }
+      });
     });
-    </script>
+  </script>
 </body>
 </html>

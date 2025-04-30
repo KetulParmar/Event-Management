@@ -5,20 +5,19 @@ from .models import *
 from razorpay.errors import BadRequestError
 from core.models import Ticket
 from django.urls import reverse
-from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, Q
-from django.shortcuts import render
-import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.utils import timezone
 from django.conf import settings
 import razorpay
 from .models import Event, Payment
 from .utils.pdf_generator import generate_invoice_pdf
-from django.core.mail import EmailMessage
-
-
+from django.core.mail import EmailMessage, send_mail
+from django.contrib.auth.decorators import login_required
+from django.db.models import Sum
+from django.shortcuts import render
+from django.utils import timezone
+from django.db.models.functions import TruncMonth
+import json
 
 #Email sending
 def send_ticket_email(user, ticket, event):
@@ -165,48 +164,40 @@ def ticket1(request, id):
     return render(request,'Ticket.html', {"event": event, 'razorpay_key': razorpay_key})
 
 
-#Razorpay client initializer
-def get_razorpay_client():
-    return razorpay.Client(auth=(
-        settings.RAZORPAY_KEY_ID or "rzp_test_BGAtdn9itwDCse",
-        settings.RAZORPAY_SECRET_KEY or "AYZJSM8iDneOC7m66CfOyLFF"
-    ))
-
-
 @csrf_exempt
 def create_order(request, event_id):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
+            print(data)
             quantity = int(data.get("quantity", 1))
             if quantity <= 0:
                 return JsonResponse({"error": "Invalid quantity"}, status=400)
-
             event = get_object_or_404(Event, id=event_id)
             user = request.user
-
+            print(user)
             if not user.is_authenticated:
                 return JsonResponse({"error": "User not authenticated"}, status=401)
-
             if event.seat_booked + quantity > event.max_attendees:
                 return JsonResponse({"error": "Not enough seats available"}, status=400)
-
             total_amount = int(event.price * quantity * 100)
-
-            client = get_razorpay_client()
-
+            print(settings.RAZORPAY_KEY_ID, " ", settings.RAZORPAY_SECRET_KEY)
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET_KEY))
+            print(client)
+            print("10")
             order_data = {
-                "amount": total_amount,
-                "currency": "INR",
-                "payment_capture": "1"
-            }
-
-
+                        "amount": total_amount,
+                        "currency": "INR",
+                        "payment_capture": "1"
+                    }
             try:
+                print("here")
                 order = client.order.create(order_data)
+                print("order:", order)
             except Exception as e:
+                print("razorpay error: ", e)
                 return JsonResponse({"error": "Razorpay order creation failed", "details": str(e)}, status=500)
-
+            print("11")
             payment = Payment.objects.create(
                 user=user,
                 event=event,
@@ -215,7 +206,7 @@ def create_order(request, event_id):
                 razorpay_order_id=order["id"],
                 status="pending"
             )
-
+            print("12")
             return JsonResponse({
                 "order_id": order["id"],
                 "amount": total_amount,
@@ -224,6 +215,7 @@ def create_order(request, event_id):
             })
 
         except Exception as e:
+            print("13")
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Invalid request"}, status=400)
@@ -233,7 +225,7 @@ def create_order(request, event_id):
 def payment_success(request):
     if request.method == "POST":
         data = json.loads(request.body)
-        client = get_razorpay_client()
+        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET_KEY))
         try:
             params_dict = {
                 'razorpay_order_id': data.get("razorpay_order_id"),
@@ -292,23 +284,25 @@ def payment_success_page(request, ticket_id):
 @login_required
 def organizer_dashboard(request):
     user = request.user
-
     my_events = Event.objects.filter(organizer=user)
-
     total_organized_events = my_events.count()
 
+    # Total Tickets Sold
     tickets_sold = Ticket.objects.filter(
         event__organizer=user,
         status__in=['booked', 'used']
     ).aggregate(total=Sum('quantity'))['total'] or 0
 
+    # Total Revenue
     total_revenue = Payment.objects.filter(
         event__organizer=user,
         status="completed"
     ).aggregate(total=Sum("amount"))["total"] or 0
 
+    # Upcoming Events
     upcoming_events = my_events.filter(start_date__gte=timezone.now().date()).count()
 
+    # Event Data for Table
     event_data = []
     for event in my_events:
         total_tickets = Ticket.objects.filter(
@@ -328,13 +322,98 @@ def organizer_dashboard(request):
             "revenue": revenue
         })
 
+    # Revenue Per Month Chart
+    monthly_revenue_data = Payment.objects.filter(
+        event__organizer=user,
+        status="completed"
+    ).annotate(month=TruncMonth('created_at')).values('month').annotate(
+        total=Sum('amount')
+    ).order_by('month')
+
+    revenue_months = [entry['month'].strftime("%b %Y") for entry in monthly_revenue_data]
+    revenue_values = [entry['total'] for entry in monthly_revenue_data]
+
+    # Tickets Sold Per Month Chart
+    monthly_tickets = Ticket.objects.filter(
+        event__organizer=user,
+        status__in=['booked', 'used']
+    ).annotate(month=TruncMonth('booking_date')).values('month').annotate(
+        total=Sum('quantity')
+    ).order_by('month')
+
+    ticket_months = [entry['month'].strftime('%b') for entry in monthly_tickets]
+    ticket_counts = [entry['total'] for entry in monthly_tickets]
+
+    # Ticket Status Count for Pie Chart
+    status_counts = Ticket.objects.filter(event__organizer=user).values('status').annotate(
+        count=Sum('quantity')
+    )
+
+    ticket_status_map = {'booked': 0, 'cancelled': 0, 'used': 0}
+    for entry in status_counts:
+        status = entry['status']
+        count = entry['count'] or 0
+        if status in ticket_status_map:
+            ticket_status_map[status] = count
+
+    ticket_status_counts = list(ticket_status_map.values())
+
+    # Recent Payments
+    recent_payments = Payment.objects.filter(
+        event__organizer=user
+    ).select_related('event', 'user').order_by('-created_at')[:10]
+
     context = {
         "total_organized_events": total_organized_events,
         "tickets_sold": tickets_sold,
         "total_revenue": total_revenue,
         "upcoming_events": upcoming_events,
         "my_events": event_data,
+        "recent_payments": recent_payments,
+
+        # Chart Data
+        "revenue_months": json.dumps(revenue_months),
+        "revenue_values": json.dumps([float(val) for val in revenue_values]),
+        "ticket_months": json.dumps(ticket_months),
+        "ticket_counts": json.dumps([float(val) for val in ticket_counts]),
+        "ticket_status_counts": json.dumps(ticket_status_counts),
     }
 
     return render(request, "organizer_dashboard.html", context)
 
+@login_required
+def my_ticket(request):
+    user = request.user
+    tickets = Ticket.objects.filter(user=user, status='booked').select_related('event')
+
+    if request.method == 'POST':
+        ticket_id = request.POST.get('ticket_id')
+        ticket = get_object_or_404(Ticket, id=ticket_id, user=user)
+        ticket.status = 'cancelled'
+        ticket.save()
+        messages.success(request, 'Your ticket has been cancelled successfully.')
+
+        # Send cancellation email
+        subject = 'Event Ticket Cancellation Confirmation'
+        message = f'''
+Dear {user.Name},
+
+Your ticket for the event **{ticket.event.title}** scheduled on {ticket.event.start_date} at {ticket.event.venue} has been successfully cancelled.
+Money will be refunded within 3 working days.
+
+If you have any questions, feel free to contact us.
+
+Thank you,  
+EventHere Team
+        '''
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.Email],
+            fail_silently=False,
+        )
+
+        return redirect('core:my_ticket')
+
+    return render(request, 'my_ticket.html', {'tickets': tickets})

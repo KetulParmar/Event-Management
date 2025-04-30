@@ -15,6 +15,7 @@ urlpatterns = [
     path("payment_success_page/<int:ticket_id>/", views.payment_success_page, name='payment_success_page'),
     path("payment_success/", views.payment_success, name="payment_success"),
     path('organizer_dashboard', views.organizer_dashboard, name='organizer_dashboard'),
+    path("my_ticket/", views.my_ticket, name="my_ticket"),
 
 ]
 

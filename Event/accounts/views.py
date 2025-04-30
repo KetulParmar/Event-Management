@@ -144,6 +144,7 @@ def details(request):
 
 @csrf_protect
 def forget(request):
+
     #OTP Sending
     if request.method == 'POST' and request.POST.get('action') == 'send_otp':
         email = request.POST.get('Email', '').strip()
