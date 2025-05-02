@@ -18,6 +18,11 @@ from django.shortcuts import render
 from django.utils import timezone
 from django.db.models.functions import TruncMonth
 import json
+from rest_framework import viewsets
+from .models import Event
+from .serializers import EventSerializer
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+
 
 #Email sending
 def send_ticket_email(user, ticket, event):
@@ -417,3 +422,8 @@ EventHere Team
         return redirect('core:my_ticket')
 
     return render(request, 'my_ticket.html', {'tickets': tickets})
+
+class EventViewSet(viewsets.ModelViewSet):
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]

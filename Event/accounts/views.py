@@ -15,6 +15,7 @@ from django.views.decorators.csrf import csrf_protect
 # Home Page
 from django.utils import timezone
 from django.db.models import Q
+
 def home(request):
     today = timezone.now().date()
     upcoming_events = Event.objects.filter(
@@ -32,9 +33,7 @@ def login_view(request):
         login_type = request.POST.get('loginType')
         login_input = request.POST.get('loginInput')
         password = request.POST.get('password')
-
         user = None
-
         try:
             if login_type == 'email':
                 user = user_Data.objects.get(Email=login_input)
@@ -42,10 +41,8 @@ def login_view(request):
                 user = user_Data.objects.get(Phone=login_input)
             elif login_type == 'username':
                 user = user_Data.objects.get(username=login_input)
-
             # Authenticate user
             auth_user = authenticate(request, username=user.username, password=password)
-
             if auth_user:
                 if c1.is_valid():
                     login(request, auth_user)
@@ -61,10 +58,8 @@ def login_view(request):
                     return redirect(reverse('accounts:Attendee'))
             else:
                 return render(request, 'Login.html', {'err': 'Incorrect password!'})
-
         except user_Data.DoesNotExist:
             return render(request, 'Login.html', {'err': 'Account does not exist!'})
-
     return render(request, 'Login.html', {'c1': c1})
 
 
