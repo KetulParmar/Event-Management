@@ -159,8 +159,8 @@ def delete(request, id):
 def details(request, id):
     event = get_object_or_404(Event, id=id)
     seat = event.max_attendees - event.seat_booked
-    print(request.user, "2")
-    return render(request, 'details.html', {"event": event, "seat":seat})
+    half = seat * (10/100)
+    return render(request, 'details.html', {"event": event, "seat":seat, "half":half})
 
 #Ticket booking
 def ticket1(request, id):
@@ -174,19 +174,23 @@ def create_order(request, event_id):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-            print(data)
             quantity = int(data.get("quantity", 1))
             if quantity <= 0:
+                print(quantity)
                 return JsonResponse({"error": "Invalid quantity"}, status=400)
+            print("1")
             event = get_object_or_404(Event, id=event_id)
+            print("2")
             user = request.user
             print(user)
+            print("3")
             if not user.is_authenticated:
                 return JsonResponse({"error": "User not authenticated"}, status=401)
             if event.seat_booked + quantity > event.max_attendees:
                 return JsonResponse({"error": "Not enough seats available"}, status=400)
+            print("4")
             total_amount = int(event.price * quantity * 100)
-            print(settings.RAZORPAY_KEY_ID, " ", settings.RAZORPAY_SECRET_KEY)
+            print(total_amount)
             client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET_KEY))
             print(client)
             print("10")
